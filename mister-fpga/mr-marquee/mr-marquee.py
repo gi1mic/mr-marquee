@@ -7,7 +7,7 @@ import sys
 import signal
 
 
-sys.path.insert(0, '/media/fat/tty2waveshare')
+sys.path.insert(0, '/media/fat/mr-marquee')
 
 from contextlib import contextmanager
 from functools import partial
@@ -18,8 +18,8 @@ from urllib.parse import urlparse
 
 DEFAULT_PORT = 8090
 DEFAULT_CORENAME_FILE = Path("/tmp/CORENAME")
-DEFAULT_SETTINGS_FILE = Path("/media/fat/wifiBanner/settings.json")
-DEFAULT_STATIC_ROOT =   Path("/media/fat/wifiBanner/banners")
+DEFAULT_SETTINGS_FILE = Path("/media/fat/mr-marquee/settings.json")
+DEFAULT_STATIC_ROOT =   Path("/media/fat/mr-marquee/banners")
 DEFAULT_MDNS_NAME = "mister"
 
 running = True
