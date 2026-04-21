@@ -8,7 +8,9 @@ The system consists of two parts.
 
 The files inside the mister-fpga folder should be copied to /media/fat on your mister system.
 
-Then the following two lines should be added to /media/fat/linux/user-startup.sh
+Then run the command "pip install zeroconf --target /media/fat/mr-marquee"
+
+After that the following two lines should be added to /media/fat/linux/user-startup.sh
 
 #Startup mr-marquee
 [[ -e /media/fat/mr-marquee/mr-marquee-init ]] && /media/fat/mr-marquee/mr-marquee-init $1
