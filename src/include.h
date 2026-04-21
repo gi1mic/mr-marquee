@@ -21,7 +21,7 @@
 
 #define OTApassword "password" // <- Match this password with the one in platform.ini
 #define BAUDRATE 115200 // // 115200 for MiSTer ttyUSBx
-#define PRODUCT_NAME "wifibanner"
+#define PRODUCT_NAME "mr_marquee"
 #define BUILD_VERSION "230421"
 #define PIC_MENU "menu"
 #define PIC_ERROR "no-image"
