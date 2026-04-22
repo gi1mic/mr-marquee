@@ -10,12 +10,15 @@
 #include <JPEGDEC.h>
 #include "include.h"
 
-#if JPEG_FILE_BUF_SIZE != 4096
-#warning "JPEG_FILE_BUF_SIZE not set to 4096 in JPEGDEC.h"
-#endif
-#if MAX_BUFFERED_PIXELS != 4096
-#warning "MAX_BUFFERED_PIXELS not set to 4096 in JPEGDEC.h"
-#endif
+// Increasing the buffer sizes does not seem to be necessary
+// so commenting out for now .....
+//
+//#if JPEG_FILE_BUF_SIZE != 4096
+//#warning "JPEG_FILE_BUF_SIZE not set to 4096 in JPEGDEC.h"
+//#endif
+//#if MAX_BUFFERED_PIXELS != 4096
+//#warning "MAX_BUFFERED_PIXELS not set to 4096 in JPEGDEC.h"
+//#endif
 
 // JPEGDEC related variables
 JPEGDEC _jpeg;

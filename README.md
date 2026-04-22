@@ -9,6 +9,25 @@ The system consists of two parts. A server element for the MiSTer FPGA system an
 
 Since we are using ESP32 WiFi for communication the MiSTer FPGA will need to be accessible via the same network.
 
+If you do not already have a MiSTer system I highly recommend a Multisystem2 [from](https://multisystem.uk/products/mister-multisystem-2/).
+
+
+# Installation script
+Download the file "install-mr-marquee.sh" to you MiSTer system.
+Them make it executable by typing the command "chmod +x install-mr-marquee.sh"
+Then simply run the script using the command "./install-mr-marquee.sh".
+
+The script will download and install the MiSTer components to a directory called /media/fat/mr-marquee.
+It will also modify the file /media/fat/linux/user-startup.sh to start the mr-marquee on boot.
+
+The following is not 100% working at the moment but eventually you will be able to flash the board by:
+
+A script to flash the ESP32-S3 waveshare screen will be added to /media/fat/mr-marquee/esptools. In the near future.
+This will require you to update the file /media/fat/mr-marquee/esptools/data/config.json with your WiFi accesspoint name and password and then flash the ESP-S3 waveshare board via a USB port on the into the MiSTer system.
+
+After the inital flash is complete and with the waveshare board connected to your network it is possibel to update it via WiFi.
+
+
 ## Manual installation on a Mister FPGA System
 Files inside the mister-fpga folder should be copied to /media/fat on your mister system.
 
@@ -59,6 +78,7 @@ The FileFetcher code from Brian Lough is included as source files and not as a l
 3. Create more Marquees
 4. Add support for ESP32 CYD boards to provide an example of how to add other devices
 5. Add MJPEG playback (The code already supports local MJPEG playback, but I have not tested with streaming video)
+6. Create a 3D printed enclosure for the screen
 
 ## Not planned
 1. I do not intend to implement any clock or screensaver features. I only require the screen to blank when the MiSTer FPGA is not available.
@@ -74,10 +94,6 @@ Then simply create a new project from github.
 PlatformIO will install the necessary libraries, and you should be able to build and flash the code in a few minutes.
 
 Note the following libraries need editing after they have been downloaded.
-
-### JPEDEC Library: (src/JPEGDC.h)
- Increase the buffer sizes by editting JPEGDEC.h and change the values of
-> JPEG_FILE_BUF_SIZE and MAX_BUFFERED_PIXELS to 4096
 
 ### Arduino_GFX Library (src/databus/ES32RGBPanel.h) 
 To avoid compilation errors of Arduino_GFX under PlatformIO you need to edit Arduino_ESP32RGBPanel.h and switch the defines on line 55 and 59 to:

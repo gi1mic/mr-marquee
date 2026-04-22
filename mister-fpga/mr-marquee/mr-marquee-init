@@ -13,7 +13,7 @@
 ### END INIT INFO
  
 # Configuration variables
-DAEMON="/media/fat/wifiBanner/wifiBanner"
+DAEMON="/media/fat/mr-marquee/mr-marquee.py"
 DAEMON_NAME="wifiBanner"
 PIDFILE="/var/run/$DAEMON_NAME.pid"
 LOGFILE="/var/log/$DAEMON_NAME.log"
