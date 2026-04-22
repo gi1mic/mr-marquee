@@ -22,10 +22,13 @@ It will also modify the file /media/fat/linux/user-startup.sh to start the mr-ma
 
 The following is not 100% working at the moment but eventually you will be able to flash the board by:
 
-A script to flash the ESP32-S3 waveshare screen will be added to /media/fat/mr-marquee/esptools. In the near future.
-This will require you to update the file /media/fat/mr-marquee/esptools/data/config.json with your WiFi accesspoint name and password and then flash the ESP-S3 waveshare board via a USB port on the into the MiSTer system.
+A script to flash the ESP32-S3 waveshare screen will be added to /media/fat/mr-marquee/esptools.
+You will need to update the file /media/fat/mr-marquee/esptools/data/config.json with your WiFi access point name and password before flashing the ESP32.
 
-After the inital flash is complete and with the waveshare board connected to your network it is possibel to update it via WiFi.
+Flashing the ESP32 requires it to be connected to the MiSTer system via its USB port.
+
+After the inital flash is complete and with the waveshare board connected to your network you can update it remotely via WiFi.
+
 
 
 ## Manual installation on a Mister FPGA System
