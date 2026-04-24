@@ -115,7 +115,7 @@ The current application is specifically designed for the ESP32-S3-LCD-3.16 scree
 
 The code should run on and ESP32 based display board with a few changes as long as the display controller is supported by the Arduino_GFX library. I will probably add support for Cheap Yellow Display board in due course as I happen to have a few already.
 
-For debugging use the [Zadig](https://zadig.akeo.ie/) to change the ESB32 USB drivers to:	
+For realtiime debugging use the [Zadig](https://zadig.akeo.ie/) to change the ESP32 USB drivers to:	
 >			 USB Interface 0 = WinUSB driver
 >			 USB Interface 2 = libusbK driver
 
