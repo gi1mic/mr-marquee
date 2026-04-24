@@ -5,7 +5,7 @@
 #include "esp_log.h"
 #include "include.h"
 
-#define USE_SPIFFS // else use the SDCARD
+#define USE_SPIFFS // Comment out to use the SDCARD
 
 #ifdef USE_SPIFFS
 #define FORMAT_SPIFFS_IF_FAILED true
@@ -13,19 +13,19 @@
 #else
 #include "SD_MMC.h"
 // SD card
-#define CLK 1
-#define CMD 2
-#define D0 42
+#define SD_CLK 1
+#define SD_CMD 2
+#define SD_D0 42
 #define BOARD_MAX_SPI_FREQUENCY SD_MMC_FREQ_HIGHSPEED
 #endif
 
 #define OTApassword "password" // <- Match this password with the one in platform.ini
 #define BAUDRATE 115200 // // 115200 for MiSTer ttyUSBx
 #define PRODUCT_NAME "mr_marquee"
-#define BUILD_VERSION "260421"
+#define BUILD_VERSION "260424"
 #define PIC_MENU "menu"
 #define PIC_ERROR "no-image"
-#define PIC_NOWIFI "no-wifi"
+#define PIC_NO_WIFI "no-wifi"
 #define PIC_DOWNLOADING "ota-update"
 
 

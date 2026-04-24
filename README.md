@@ -12,7 +12,7 @@ Since we are using ESP32 WiFi for communication the MiSTer FPGA will need to be 
 If you do not already have a MiSTer system I highly recommend a Multisystem2 [from](https://multisystem.uk/products/mister-multisystem-2/).
 
 
-# Installation script
+# MiSTer Installation script
 Download the file "install-mr-marquee.sh" to you MiSTer system.
 Them make it executable by typing the command "chmod +x install-mr-marquee.sh"
 Then simply run the script using the command "./install-mr-marquee.sh".
@@ -20,15 +20,16 @@ Then simply run the script using the command "./install-mr-marquee.sh".
 The script will download and install the MiSTer components to a directory called /media/fat/mr-marquee.
 It will also modify the file /media/fat/linux/user-startup.sh to start the mr-marquee on boot.
 
-The following is not 100% working at the moment but eventually you will be able to flash the board by:
+# ESP32-S3 3.16" Waveshare programming
+Once you have the files installed on your MiSTer system you can program the ESP32-S3 3.16" screen directly by connecting it to an available USB port. Please make sure it is the ONLY ESP32 device connected to your MiSTer system as no checks are done!!
 
-A script to flash the ESP32-S3 waveshare screen will be added to /media/fat/mr-marquee/esptools.
-You will need to update the file /media/fat/mr-marquee/esptools/data/config.json with your WiFi access point name and password before flashing the ESP32.
+CD into /media/fat/mr-marquee/esptools. And run the script flash-mr-marquee.sh. After a few seconds the ESP32 will reboot and show a Wi-Fi icon and the connection details on its screen. 
 
-Flashing the ESP32 requires it to be connected to the MiSTer system via its USB port.
+At this point the ESP32 will have created its own local Wi-Fi access point called mr_marquee. Connect your phone or laptop to this Wi-Fi network (no password) and point a web browser at http://192.168.4.1 where you will see a simple menu to connect the ESP32 to your main network.
 
-After the inital flash is complete and with the waveshare board connected to your network you can update it remotely via WiFi.
+Once you do this the ESP32 will reboot again and this time connect to your house Wi-Fi. If all is OK it will show a MiSTer logo.
 
+The ESP32 will revert to creating a local access point if it cannot register with your Wi-Fi.
 
 
 ## Manual installation on a Mister FPGA System
@@ -42,22 +43,18 @@ Then use nano to edit /media/fat/linux/user-startup.sh and add the following two
 >#Startup mr-marquee
 >[[ -e /media/fat/mr-marquee/mr-marquee-init ]] && /media/fat/mr-marquee/mr-marquee-init $1
 
-### What the code does
+### What the code does on your MiSTer system
 The mr-marquee service provides the following features:
 1) it allows the mister system to be discovered on the network via the network name "mister.local"
 2) it creates a web server that allows a remote system to read the current running core
 3) It shares a settings.json file providing configuration information to the remote system
 4) It shares a folder called banners containing JPG marquees.
 
-## Installation on ESP32 hardware
+## Operation on the ESP32
 
-The current application is specifically designed for the ESP32-S3-LCD-3.16 screen from Waveshare. The MaTouch ESP32-S3 Parallel TFT 3.16“ ST7701S looks to be a very similar board but use it at your own risk.
+If there are no stored Wi-Fi credentials it creates a local Wi-Fi access point allowing the user to select an available network and provide a suitable password for connection.
 
-The code should run on and ESP32 based display board with a few changes as long as the display controller is supported by the Arduino_GFX library. I will probably add support for Cheap Yellow Display board in due course as I happen to have a few already.
-
-## Operation
-
-The ESP32 application uses mDNS to discover the IP address of mister FPGA system. It then queries the 
+The ESP32 application then uses mDNS to discover the IP address of mister FPGA system. It then queries the 
 mr-marquee web server to get the current running corename. If no core is running it shows a simple banner called menu.jpg which is held on a local SPIFFS filesystem.
 
 If a core name is received it uses that name to download a marquee image via HTTP and display it on the local colour screen.
@@ -66,7 +63,43 @@ The screen will go blank after a predetermined time if the mister.local webserve
 
 The ESP32 should appear on the local network as "mr_marquee.local" and the application includes a simple web-based file management system for updating the system files held on the SPIFFS filesystem of the ESP32. 
 
-It is possible to upgrade the ESP32 application remotely via Wi-Fi using the standard Espressif ESP32 OTA Update process.
+It supports upgrade the ESP32 firmware remotely via Wi-Fi using the standard Espressif ESP32 OTA Update process.
+
+
+## Building the ESP32 code using platformIO
+
+Install VisualCode and the platformIO plugin.
+
+Create a new project using the [git repository](https://github.com/gi1mic/mr-marquee.git) .
+
+platformIO will take cre of downloading the necessary library files.
+
+The current Arduino_GFX library does not play well with platformIO and you will need to make the following changes to get it to work: 
+
+; Arduino_GFX Library (src/databus/ES32RGBPanel.h):
+; edit Arduino_ESP32RGBPanel.h and switch the defines on line 58 and 59 to
+;        #if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR < 3)
+;        //#if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR >5)
+;
+; Arduino_GFX Library (src/databus/Arduino_ESP32SPI.h):
+; edit Arduino_ESP32SPI.h and comment out the includes of 
+;      esp32-hal-periman.h and esp_private/periph_ctrl.h on lines 21 and 22
+;              //#include "esp32-hal-periman.h"
+;              //#include "esp_private/periph_ctrl.h"
+
+After that you should be able to build the code and the SPIFFS filesystem. There are scripts in the win-esptool folder to build a merged firmware file containing all the necessary bits and then flash that file to a connected ESP32 device.
+
+You can uncomment sections in platformio.inin to enable direct OTA flashing and to enable realtime, single step debugging and of course you can change the debug level to serial port messages.
+
+Notes:
+
+The current application is specifically designed for the ESP32-S3-LCD-3.16 screen from Waveshare. The MaTouch ESP32-S3 Parallel TFT 3.16“ ST7701S looks to be a very similar board but use it at your own risk.
+
+The code should run on and ESP32 based display board with a few changes as long as the display controller is supported by the Arduino_GFX library. I will probably add support for Cheap Yellow Display board in due course as I happen to have a few already.
+
+For debugging use the [Zadig](https://zadig.akeo.ie/) to change the ESB32 USB drivers to:	
+			 USB Interface 0 = WinUSB driver
+			 USB Interface 2 = libusbK driver
 
 ## Thanks to:
 This project started life as a customisation of the abandoned tty2tft project (https://github.com/ojaksch/MiSTer_tty2tft). It has since evolved into a very different application.
@@ -76,12 +109,10 @@ Many of the Marquees were converted from artwork designed for Pixelcade which I 
 The FileFetcher code from Brian Lough is included as source files and not as a library. I had to amend the library to support ports other than port 80 and 443 and fix an issue with missing data at the end of the stream. 
 
 ## Things to do
-1. Create an installer for the Mister FPGA that will install the code and optionally Flash the ESP32 display
-2. Create a binary release of the ESP32 firmware for use with the above installer
-3. Create more Marquees
-4. Add support for ESP32 CYD boards to provide an example of how to add other devices
-5. Add MJPEG playback (The code already supports local MJPEG playback, but I have not tested with streaming video)
-6. Create a 3D printed enclosure for the screen
+1. Create more Marquees
+2. Add support for ESP32 CYD boards to provide an example of how to add other devices
+3. Add MJPEG playback (The code already supports local MJPEG playback, but I have not tested with streaming video)
+4. Create a 3D printed enclosure for the screen
 
 ## Not planned
 1. I do not intend to implement any clock or screensaver features. I only require the screen to blank when the MiSTer FPGA is not available.

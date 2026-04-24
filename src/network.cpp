@@ -8,19 +8,13 @@
 #include <bits/stdc++.h>
 #include <ArduinoJson.h>
 #include "FileFetcher.h"
-
+#include <WiFiManager.h> //
 static const char *TAG = "NET";
 
 using namespace std;
 
 WiFiClient client;
 FileFetcher fileFetcher(client);
-
-String WSSID = "SSID";
-String WPASS = "PW";
-
-String WIFItimeout = "20";
-char *WIFICountry[2];
 
 unsigned long lastTimeCore = 0;
 unsigned long lastTimeSettings = 0;
@@ -31,91 +25,24 @@ unsigned long updateDelaySettings = 1000;
 long screenTimeout = 10; // This can be overridden by server settings
 long screenTimeoutSettings = 10;
 
-//----------------------------------------------
-void loadWiFiConfig()
+void configModeCallback(WiFiManager *myWiFiManager)
 {
-    // Read WiFi Credentials
-    File filehandle;
-#ifdef USE_SPIFFS
-    filehandle = SPIFFS.open("/config.json", FILE_READ);
-#else
-    filehandle = SD_MMC.open("/wifi.txt", FILE_READ);
-#endif
-    if (!filehandle)
-    {
-        writetextcentered("Could not open the file config.json", 30, DEFAULT_FONT, 0, YELLOW, false, "");
-        ESP_LOGI(TAG, "Could not open the file config.json");
-        while (1)
-            delay(0);
-    }
-    else
-    {
-        String WIFIcountry = "GB";
-        JsonDocument config;
-
-        DeserializationError error = deserializeJson(config, filehandle);
-        if (error)
-        {
-            ESP_LOGI(TAG, "JSON Deserialization Error - have you uploaded the SPIFFS yet?");
-            delay(2000);
-            return;
-        }
-
-        WSSID = config["SSID"].as<const char *>();
-        WPASS = config["PASSWORD"].as<const char *>();
-        WIFItimeout = config["TIMEOUT"].as<const char *>();
-        WIFIcountry = config["LOCAL"].as<const char *>();
-        if (WIFItimeout.isEmpty())
-            WIFItimeout = "20";
-        ESP_LOGI(TAG, "WSSID %s", WSSID);
-        ESP_LOGI(TAG, "WPASS: %s", WPASS);
-        ESP_LOGI(TAG, "WiFi Timeout: %s", WIFItimeout);
-
-        if (WIFIcountry.isEmpty())
-        {
-            WIFIcountry = "GB";
-        }
-        else
-        {
-            WIFIcountry.toCharArray(*WIFICountry, 2);
-        }
-
-        if (WSSID == "SSID" && WPASS == "PW")
-        {
-            writetextcentered("No valid WiFi credentials, WiFi disabled.", 30, DEFAULT_FONT, 0, YELLOW, false, "");
-            ESP_LOGI(TAG, "No valid WiFi credentials, WiFi disabled.");
-            delay(1000);
-        }
-    }
-    filehandle.close();
+    showLocalImage(PIC_NO_WIFI);
+    String msg = "SSID: " + myWiFiManager->getConfigPortalSSID() + "  http://" + WiFi.softAPIP().toString();
+    footbanner(msg);
+    Serial.println(msg);
 }
 
 //----------------------------------------------
 void connectWiFi()
 {
-    // https://github.com/esp8266/Arduino/blob/master/tools/sdk/include/user_interface.h#L750-L760
-    // wifi_country_t WIFIcountry;    // https://github.com/esp8266/Arduino/issues/7083
-    WiFi.mode(WIFI_STA); // Explicit use of STA mode
-    WiFi.setAutoReconnect(true);
+    WiFiManager wm;
+    std::vector<const char *> wmMenuItems = {"wifi", "exit"};
 
-    for (int i = 1; i <= 10; i++)
-    {
-        int startTime = millis();
-        WiFi.disconnect(); // Disconnect from AP if it was previously connected
-        WiFi.begin(WSSID.c_str(), WPASS.c_str(), WIFI_ALL_CHANNEL_SCAN);
-        WiFi.persistent(true); // Store Wifi configuration in Flash?
-        while (WiFi.status() != WL_CONNECTED && (millis() - startTime) <= WIFItimeout.toInt() * 1000)
-        { // Try to connect
-            ESP_LOGI(TAG, "WiFi status: %d", WiFi.status());
-            delay(500);
-        }
-        if (WiFi.status() == WL_CONNECTED)
-        {
-            ESP_LOGI(TAG, "Connected to WiFi network: %s", WSSID.c_str());
-            ESP_LOGI(TAG, "IP address: %s", WiFi.localIP().toString().c_str());
-            break;
-        }
-    }
+    //   wm.resetSettings(); // Uncomment to clear saved WiFi details (For testing only)
+    wm.setAPCallback(configModeCallback);
+    wm.setMenu(wmMenuItems);
+    int res = wm.autoConnect(PRODUCT_NAME);
 }
 
 //----------------------------------------------
@@ -271,7 +198,7 @@ void processCore()
         {
             ESP_LOGI(TAG, "WiFi Disconnected");
             tft->fillScreen(BLACK);
-            showLocalImage(PIC_NOWIFI);
+            showLocalImage(PIC_NO_WIFI);
         }
         lastTimeCore = millis();
     }

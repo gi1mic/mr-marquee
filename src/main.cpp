@@ -47,12 +47,12 @@ void setup(void)
 #ifdef USE_SPIFFS
   if (!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
   {
-    writetextcentered("Error while initialising SPIFFS. Halting.", 20, u8g2_font_luBS10_tf, 0, BLUE, false, "clear");
+    footbanner("Error while initialising SPIFFS. Halting.");
     return;
   }
 #else
   ESP_LOGI("SD", "Mounting SDcard");
-  if (!SD_MMC.setPins(CLK, CMD, D0))
+  if (!SD_MMC.setPins(SD_CLK, SD_CMD, SD_D0))
   {
     Serial.println("SD MMC pin change failed!");
     return;
@@ -69,7 +69,7 @@ void setup(void)
   ESP_LOGI("SD", "SD_MMC Card Size: %lluMB\n", SD_MMC.cardSize() / (1024 * 1024));
 #endif
 
-  loadWiFiConfig();
+//  loadWiFiConfig();
   connectWiFi();
   startOTA();
   startMdns();
