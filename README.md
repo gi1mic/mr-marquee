@@ -2,6 +2,9 @@
 Colour Marquees for MiSTer FPGA. 
 Like tty2oled but using a colour screen and Wi-Fi to allow for remote connections instead of a USB port.
 
+![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/n64.jpg?raw=true)
+![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/ps1.jpg?raw=true)
+
 ** This is a work in progress..... **
 
 ## Introduction
@@ -25,9 +28,16 @@ Once you have the files installed on your MiSTer system you can program the ESP3
 
 CD into /media/fat/mr-marquee/esptools. And run the script flash-mr-marquee.sh. After a few seconds the ESP32 will reboot and show a Wi-Fi icon and the connection details on its screen. 
 
-At this point the ESP32 will have created its own local Wi-Fi access point called mr_marquee. Connect your phone or laptop to this Wi-Fi network (no password) and point a web browser at http://192.168.4.1 where you will see a simple menu to connect the ESP32 to your main network.
+At this point the ESP32 will have created its own local Wi-Fi access point called mr_marquee.
+
+![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/no-wifi.jpg?raw=true)
+
+Connect your phone or laptop to this Wi-Fi network (no password) and point a web browser at http://192.168.4.1 where you will see a simple menu to connect the ESP32 to your main network.
 
 Once you do this the ESP32 will reboot again and this time connect to your house Wi-Fi. If all is OK it will show a MiSTer logo.
+
+![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/mister.jpg?raw=true)
+
 
 The ESP32 will revert to creating a local access point if it cannot register with your Wi-Fi.
 
