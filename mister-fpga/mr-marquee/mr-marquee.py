@@ -95,8 +95,8 @@ class RawAndStaticHandler(SimpleHTTPRequestHandler):
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Serve /tmp/CORENAME and /tmp/SETTINGS as raw text pages and "
-            "share files from /media/fat/tty2waveshare/jpg."
+            "Serve /tmp/CORENAME and /media/fat/mr-marquee/SETTINGS as raw text pages and "
+            "share files from /media/fat/mr-marquee/marquees."
         )
     )
     parser.add_argument("--port", type=int, default=DEFAULT_PORT, help="TCP port to bind.")
