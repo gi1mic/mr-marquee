@@ -36,12 +36,26 @@ It supports upgrade the ESP32 firmware remotely via Wi-Fi using the standard Esp
 
 # Installation
 ## MiSTer Installation
-Download the file "install-mr-marquee.sh" to you MiSTer system.
-Them make it executable by typing the command "chmod +x install-mr-marquee.sh"
-Then simply run the script using the command "./install-mr-marquee.sh".
+
+Login to a MiSTer bash shell using SSH.
+Download the file "install-mr-marquee.sh" to you MiSTer system using the command 
+> wget https://raw.githubusercontent.com/gi1mic/mr-marquee/refs/heads/main/mister-fpga/mr-marquee/install-mr-marquee.sh
+
+Them make it executable by typing the command
+> chmod +x install-mr-marquee.sh
+
+Then simply run the script using the command by typing
+> ./install-mr-marquee.sh
 
 The script will download and install the MiSTer components to a directory called /media/fat/mr-marquee.
-It will also modify the file /media/fat/linux/user-startup.sh to start the mr-marquee on boot.
+It may take it a few minutes to install the necessary python files.
+Once complete re-boot the MiSTer system to finish the install by typing
+> reboot
+
+You can check the server is running by pointing a web browser to
+> http://mister.local:8090/
+and viewing some of the available marquees
+
 
 ## ESP32-S3 3.16" Waveshare programming
 Once you have the files installed on your MiSTer system you can program the ESP32-S3 3.16" screen directly by connecting it to an available USB port. Please make sure it is the ONLY ESP32 device connected to your MiSTer system as no checks are done!!
