@@ -19,7 +19,7 @@ from urllib.parse import urlparse
 DEFAULT_PORT = 8090
 DEFAULT_CORENAME_FILE = Path("/tmp/CORENAME")
 DEFAULT_SETTINGS_FILE = Path("/media/fat/mr-marquee/settings.json")
-DEFAULT_STATIC_ROOT =   Path("/media/fat/mr-marquee/banners")
+DEFAULT_STATIC_ROOT =   Path("/media/fat/mr-marquee/marquees")
 DEFAULT_MDNS_NAME = "mister"
 
 running = True
