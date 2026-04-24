@@ -66,41 +66,6 @@ The ESP32 should appear on the local network as "mr_marquee.local" and the appli
 It supports upgrade the ESP32 firmware remotely via Wi-Fi using the standard Espressif ESP32 OTA Update process.
 
 
-## Building the ESP32 code using platformIO
-
-Install VisualCode and the platformIO plugin.
-
-Create a new project using the [git repository](https://github.com/gi1mic/mr-marquee.git) .
-
-platformIO will take cre of downloading the necessary library files.
-
-The current Arduino_GFX library does not play well with platformIO and you will need to make the following changes to get it to work: 
-
-; Arduino_GFX Library (src/databus/ES32RGBPanel.h):
-; edit Arduino_ESP32RGBPanel.h and switch the defines on line 58 and 59 to
-;        #if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR < 3)
-;        //#if (!defined(ESP_ARDUINO_VERSION_MAJOR)) || (ESP_ARDUINO_VERSION_MAJOR >5)
-;
-; Arduino_GFX Library (src/databus/Arduino_ESP32SPI.h):
-; edit Arduino_ESP32SPI.h and comment out the includes of 
-;      esp32-hal-periman.h and esp_private/periph_ctrl.h on lines 21 and 22
-;              //#include "esp32-hal-periman.h"
-;              //#include "esp_private/periph_ctrl.h"
-
-After that you should be able to build the code and the SPIFFS filesystem. There are scripts in the win-esptool folder to build a merged firmware file containing all the necessary bits and then flash that file to a connected ESP32 device.
-
-You can uncomment sections in platformio.inin to enable direct OTA flashing and to enable realtime, single step debugging and of course you can change the debug level to serial port messages.
-
-Notes:
-
-The current application is specifically designed for the ESP32-S3-LCD-3.16 screen from Waveshare. The MaTouch ESP32-S3 Parallel TFT 3.16“ ST7701S looks to be a very similar board but use it at your own risk.
-
-The code should run on and ESP32 based display board with a few changes as long as the display controller is supported by the Arduino_GFX library. I will probably add support for Cheap Yellow Display board in due course as I happen to have a few already.
-
-For debugging use the [Zadig](https://zadig.akeo.ie/) to change the ESB32 USB drivers to:	
-			 USB Interface 0 = WinUSB driver
-			 USB Interface 2 = libusbK driver
-
 ## Thanks to:
 This project started life as a customisation of the abandoned tty2tft project (https://github.com/ojaksch/MiSTer_tty2tft). It has since evolved into a very different application.
 
@@ -119,15 +84,16 @@ The FileFetcher code from Brian Lough is included as source files and not as a l
 2. Touchscreen support
 
 
-## Compiling the ESP32 Code
 
-You will need to install VisualCode and the PlatformIO extension.
+## Building the ESP32 code using platformIO
 
-Then simply create a new project from github.
+Install VisualCode and the platformIO plugin.
+
+Create a new project using the [git repository](https://github.com/gi1mic/mr-marquee.git) .
 
 PlatformIO will install the necessary libraries, and you should be able to build and flash the code in a few minutes.
 
-Note the following libraries need editing after they have been downloaded.
+The current Arduino_GFX library does not play well with platformIO and you will need to make the following changes to get it to work: 
 
 ### Arduino_GFX Library (src/databus/ES32RGBPanel.h) 
 To avoid compilation errors of Arduino_GFX under PlatformIO you need to edit Arduino_ESP32RGBPanel.h and switch the defines on line 55 and 59 to:
@@ -136,11 +102,22 @@ To avoid compilation errors of Arduino_GFX under PlatformIO you need to edit Ard
 
 ### Arduino_GFX Library (src/databus/Arduino_ESP32SPI.h):
 To avoid compilation errors of Arduino_GFX under PlatformIO you need to edit Arduino_ESP32SPI.h and comment out the following two includes:
->              //#include "esp32-hal-periman.h"
->              //#include "esp_private/periph_ctrl.h"
+>        //#include "esp32-hal-periman.h"
+>        //#include "esp_private/periph_ctrl.h"
 
+After that you should be able to build the code and the SPIFFS filesystem. There are scripts in the win-esptool folder to build a merged firmware file containing all the necessary bits and then flash that file to a connected ESP32 device.
 
+You can uncomment sections in platformio.inin to enable direct OTA flashing and to enable realtime, single step debugging and of course you can change the debug level to serial port messages.
 
+Notes:
+
+The current application is specifically designed for the ESP32-S3-LCD-3.16 screen from Waveshare. The MaTouch ESP32-S3 Parallel TFT 3.16“ ST7701S looks to be a very similar board but use it at your own risk.
+
+The code should run on and ESP32 based display board with a few changes as long as the display controller is supported by the Arduino_GFX library. I will probably add support for Cheap Yellow Display board in due course as I happen to have a few already.
+
+For debugging use the [Zadig](https://zadig.akeo.ie/) to change the ESB32 USB drivers to:	
+>			 USB Interface 0 = WinUSB driver
+>			 USB Interface 2 = libusbK driver
 
 
 
