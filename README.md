@@ -5,7 +5,6 @@ Like tty2oled but using a colour screen and Wi-Fi to allow for remote connection
 ![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/n64.jpg?raw=true)
 ![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/ps1.jpg?raw=true)
 
-** This is a work in progress..... **
 
 ## Introduction
 The system consists of two parts. A server element for the MiSTer FPGA system and a Wi-Fi connected ESP32 based colour display.
