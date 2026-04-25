@@ -57,10 +57,15 @@ You can check the server is running by pointing a web browser to
 and viewing some of the available marquees
 
 
-## ESP32-S3 3.16" Waveshare programming
-Once you have the files installed on your MiSTer system you can program the ESP32-S3 3.16" screen directly by connecting it to an available USB port. Please make sure it is the ONLY ESP32 device connected to your MiSTer system as no checks are done!!
+## ESP32 programming
+Once you have the files installed on your MiSTer system you can program either a Waveshare ESP32-S3 3.16" screen or a Cheap Yellow Display (CYD) by connecting it to an available USB port. Please make sure it is the ONLY ESP32 device connected to your MiSTer system as no checks are undertaken!!
 
-CD into /media/fat/mr-marquee/esptools. And run the script flash-mr-marquee.sh. After a few seconds the ESP32 will reboot and show a Wi-Fi icon and the connection details on its screen. 
+CD into /media/fat/mr-marquee/esptools. And run the command 
+> ./flash-mr-marquee-cyd.sh
+ or 
+ > ./flash-mr-marquee-waveshare.sh.
+
+After a few seconds the ESP32 will reboot and show a Wi-Fi icon and the connection details on its screen. 
 
 At this point the ESP32 will have created its own local Wi-Fi access point called mr_marquee.
 
