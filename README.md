@@ -99,9 +99,8 @@ The FileFetcher code from Brian Lough is included as source files and not as a l
 
 # Things to do
 1. Create more Marquees
-2. Add support for ESP32 CYD boards to provide an example of how to add other devices
-3. Add MJPEG playback (The code already supports local MJPEG playback, but I have not tested with streaming video)
-4. Create a 3D printed enclosure for the screen
+2. Add MJPEG playback (The code already supports local MJPEG playback, but I have not tested with streaming video)
+3. Create a 3D printed enclosure for the screen
 
 ## Not planned
 1. I do not intend to implement any clock or screensaver features. I only require the screen to blank when the MiSTer FPGA is not available.
