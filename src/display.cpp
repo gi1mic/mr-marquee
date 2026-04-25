@@ -16,9 +16,9 @@ bool videoPlay = false;
 String folderjpg = "/jpg/";
 String foldermjpeg = "/mjpeg/";
 String dirletter = "";
-//bool PORTRAIT_SCREEN = true;
-//#define  PORTRAIT_SCREEN true
 
+
+#ifdef WAVESHARE
 Arduino_DataBus *bus = new Arduino_ESP32SPI(GFX_NOT_DEFINED, 0, 2 /* SCK */, 1 /* MOSI */, GFX_NOT_DEFINED /* MISO */, FSPI /* spi_num */);
 
 Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
@@ -32,6 +32,13 @@ Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
 Arduino_RGB_Display *tft = new Arduino_RGB_Display(
     TFT_WIDTH /* width */, TFT_HEIGHT /* height */, rgbpanel, 0 /* rotation */, true /* auto_flush */,
     bus, 16 /* RST */, st7701_type10_init_operations, sizeof(st7701_type10_init_operations));
+#endif
+
+#ifdef ILI9341_2_DRIVER
+
+Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
+Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
+#endif
 
 static int jpegDrawCallback(JPEGDRAW *pDraw);
 static MjpegClass mjpeg;
@@ -53,6 +60,10 @@ void tftInit()
     ESP_LOGI(TAG, "Display width: %d, height: %d\n", DispWidth, DispHeight);
 }
 
+void clearScreen()
+{
+    tft->fillScreen(BLACK);
+}
 //----------------------------------------------
 void writetext(String text, int fixedpos, int textposX, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear)
 {
@@ -107,7 +118,7 @@ void writetextcentered(String text, int textposY, const uint8_t *fontname, int t
 //----------------------------------------------
 void footbanner(String bannertext)
 {
-    writetext(bannertext, 1, DispWidth / 2 - ((bannertext.length() * 20) / 2), 270, TFT_FONT_LARGE, 0, RED, false, "");
+    writetext(bannertext, 1, DispWidth / 2 - ((bannertext.length() * 20) / 2), FOOTER_LINE, TFT_FONT_LARGE, 0, RED, false, "");
 }
 
 //----------------------------------------------
@@ -123,7 +134,7 @@ bool showLocalImage(String core)
 {
     String fqn = "/" + core + ".jpg";
     ESP_LOGI(TAG, "Showing local pic: %s", fqn.c_str());
-#ifdef USE_SPIFFS
+#ifdef USE_INTERNAL_SPIFFS
     if (SPIFFS.exists(fqn))
 #else
     if (SD_MMC.exists(fqn))
@@ -191,7 +202,7 @@ bool showVideo(String core, int videoposX, int videoposY)
     String fqn = addPathAndExtension(core, "mjpeg");
     ESP_LOGI(TAG, "Play video: %s", fqn.c_str());
     File filehandle;
-#ifdef USE_SPIFFS
+#ifdef USE_INTERNAL_SPIFFS
     filehandle = SPIFFS.open(fqn, FILE_READ);
 #else
     filehandle = SD_MMC.open(fqn, FILE_READ);

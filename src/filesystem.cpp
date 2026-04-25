@@ -17,7 +17,7 @@ void addFileSystems(void)
 
     // This adds the Storage into the Filemanager. You have to at least call one of those.
     // If you don't, begin() will fail. Because a Filemanager without files is useless.
-#ifdef USE_SPIFFS
+#ifdef USE_INTERNAL_SPIFFS
     if (!filemgr.AddFS(SPIFFS, "SPIFFS", false))
     {
         Serial.println(F("Adding SPIFFS failed."));
@@ -116,7 +116,7 @@ int getFile(String url, String targetFilename)
     ESP_LOGI(TAG, "Target = %s", targetFilename.c_str());
     int filesize = 0;
 
-    tft->fillScreen(BLACK); // Clear screen before downloading
+    clearScreen();
     footbanner("Downloading... ");
     if ((WiFi.status() == WL_CONNECTED))
     { // Check WiFi connection
@@ -131,7 +131,7 @@ int getFile(String url, String targetFilename)
         { // HTTP header has been send and Server response header has been handled
             ESP_LOGI(TAG, "[HTTP] GET... code: %d", httpCode);
 
-#ifdef USE_SPIFFS
+#ifdef USE_INTERNAL_SPIFFS
             filehandle = SPIFFS.open(targetFilename, "w+");
 #else
             filehandle = SD_MMC.open(targetFilename, "w+");
@@ -166,7 +166,7 @@ int getFile(String url, String targetFilename)
             }
             filehandle.close();
 
-#ifdef USE_SPIFFS
+#ifdef USE_INTERNAL_SPIFFS
             filehandle = SPIFFS.open(targetFilename, FILE_READ);
 #else
             filehandle = SD_MMC.open(targetFilename, FILE_READ);
@@ -174,7 +174,7 @@ int getFile(String url, String targetFilename)
             filesize = filehandle.size(); // Check filesize
             filehandle.close();
             if (filesize == 0)
-#ifdef USE_SPIFFS
+#ifdef USE_INTERNAL_SPIFFS
             SPIFFS.remove(targetFilename); // If filesize = 0 delete it
 #else
             SD_MMC.remove(targetFilename); // If filesize = 0 delete it

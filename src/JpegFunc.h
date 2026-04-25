@@ -10,6 +10,7 @@
 #include <JPEGDEC.h>
 #include "include.h"
 
+
 // Increasing the buffer sizes does not seem to be necessary
 // so commenting out for now .....
 //
@@ -35,8 +36,8 @@ void jpegDraw(const char *filename, JPEG_DRAW_CALLBACK *jpegDrawCallback, bool u
 // Function definitions
 void *jpegOpenFile(const char *szFilename, int32_t *pFileSize)
 {
-//  ESP_LOGI(TAG, "jpegOpenFile: %s", String(szFilename));
-#ifdef USE_SPIFFS
+//  ESP_LOGI(__FILE__, "jpegOpenFile: %s", String(szFilename));
+#ifdef USE_INTERNAL_SPIFFS
   _f = SPIFFS.open(szFilename, FILE_READ);
 #else
   _f = SD_MMC.open(szFilename, FILE_READ);
@@ -48,14 +49,14 @@ void *jpegOpenFile(const char *szFilename, int32_t *pFileSize)
 
 void jpegCloseFile(void *pHandle)
 {
-  ESP_LOGD(TAG, "jpegCloseFile");
+  ESP_LOGD(__FILE__, "jpegCloseFile");
   File *f = static_cast<File *>(pHandle);
   f->close();
 }
 
 int32_t jpegReadFile(JPEGFILE *pFile, uint8_t *pBuf, int32_t iLen)
 {
-  ESP_LOGD(TAG, "jpegReadFile, iLen: %d", iLen);
+  ESP_LOGD(__FILE__, "jpegReadFile, iLen: %d", iLen);
   File *f = static_cast<File *>(pFile->fHandle);
   size_t r = f->read(pBuf, iLen);
   return r;
@@ -63,7 +64,7 @@ int32_t jpegReadFile(JPEGFILE *pFile, uint8_t *pBuf, int32_t iLen)
 
 int32_t jpegSeekFile(JPEGFILE *pFile, int32_t iPosition)
 {
-  ESP_LOGD(TAG, "jpegSeekFile, pFile->iPos: %d, iPosition: %d\n", pFile->iPos, iPosition);
+  ESP_LOGD(__FILE__, "jpegSeekFile, pFile->iPos: %d, iPosition: %d\n", pFile->iPos, iPosition);
   File *f = static_cast<File *>(pFile->fHandle);
   f->seek(iPosition);
   return iPosition;
@@ -73,11 +74,11 @@ void jpegDraw(
     const char *filename, JPEG_DRAW_CALLBACK *jpegDrawCallback, bool useBigEndian,
     int x, int y, int widthLimit, int heightLimit, int _scale)
 {
-  ESP_LOGV(TAG, "Opening JPEG: %s", filename);
-  ESP_LOGV(TAG, "Scale: %i", _scale);
+  ESP_LOGV(__FILE__, "Opening JPEG: %s", filename);
+  ESP_LOGV(__FILE__, "Scale: %i", _scale);
 
   int ret = _jpeg.open(filename, jpegOpenFile, jpegCloseFile, jpegReadFile, jpegSeekFile, jpegDrawCallback);
-  ESP_LOGD("JPEG", "JPEG open result: %d", ret);
+  ESP_LOGD(__FILE__, "JPEG open result: %d", ret);
 
   if (x == -1 && y == -1)
   {

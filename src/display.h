@@ -23,14 +23,10 @@
 #define DARKBLUE RGB565_DARKBLUE
 
 // TFT
-#define TFT_BL 06
-#define TFT_BACKLIGHT_ON 0
-#define TFT_BACKLIGHT_OFF 255
-#define TFT_FONT_SMALL u8g2_font_helvB12_te
-#define TFT_FONT_NORMAL u8g2_font_inr21_mf
-#define TFT_FONT_LARGE u8g2_font_fub30_tf
+
 #define MJPEG_BUFFER_SIZE (TFT_WIDTH * TFT_HEIGHT * 2 / 4) // memory for a single JPEG frame
 
+#ifdef WAVESHARE
 // Init sequence for Waveshare 3.16" 820x320 ST7701S display
 static const uint8_t st7701_type10_init_operations[] = {
   BEGIN_WRITE,
@@ -87,7 +83,21 @@ static const uint8_t st7701_type10_init_operations[] = {
   END_WRITE,
 };
 
+#endif
+
+#ifdef ILI9341_2_DRIVER
+extern Arduino_GFX *tft;
+#define TFT_FONT_SMALL  u8g2_font_6x12_tn 
+#define TFT_FONT_NORMAL u8g2_font_helvB12_te
+#define TFT_FONT_LARGE  u8g2_font_inr21_mf
+#else
 extern Arduino_RGB_Display *tft;
+#define TFT_FONT_SMALL  u8g2_font_helvB12_te
+#define TFT_FONT_NORMAL u8g2_font_inr21_mf
+#define TFT_FONT_LARGE  u8g2_font_fub30_tf
+#endif
+
+
 extern int DispWidth;
 extern int DispHeight;
 extern const uint8_t *DEFAULT_FONT;
@@ -104,6 +114,7 @@ void screenOff(void);
 void cmdHWInfo(void);
 void screenRotation(int rotation);
 void screenText(char *sParam);
+void clearScreen();
 
 
 void tftInit();

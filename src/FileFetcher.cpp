@@ -333,7 +333,7 @@ bool FileFetcher::getFile(char *fileUrl, uint8_t **file, int *fileLength)
     skipHeaders();
 
     uint8_t *imgPtr = static_cast<uint8_t *>(
-        heap_caps_malloc(static_cast<size_t>(totalLength), MALLOC_CAP_SPIRAM | MALLOC_CAP_8BIT));
+        heap_caps_malloc(static_cast<size_t>(totalLength), MALLOC_CAP_8BIT));
 
     if (imgPtr == nullptr)
     {

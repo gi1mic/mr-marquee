@@ -5,9 +5,9 @@
 #include "esp_log.h"
 #include "include.h"
 
-#define USE_SPIFFS // Comment out to use the SDCARD
+#define USE_INTERNAL_SPIFFS // Comment out to use a SDCARD
 
-#ifdef USE_SPIFFS
+#ifdef USE_INTERNAL_SPIFFS
 #define FORMAT_SPIFFS_IF_FAILED true
 #include "SPIFFS.h"
 #else
@@ -27,10 +27,6 @@
 #define PIC_ERROR "no-image"
 #define PIC_NO_WIFI "no-wifi"
 #define PIC_DOWNLOADING "ota-update"
-
-
-#define NAK "ttynack;"
-#define ACK "ttyack;"
 
 
 #endif // INCLUDE_H

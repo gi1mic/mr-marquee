@@ -73,7 +73,7 @@ void startOTA()
 {
     ESP_LOGI(TAG, "ArduinoOTA starting");
     ArduinoOTA.setHostname(PRODUCT_NAME);
-    ArduinoOTA.setPassword(PASSWORD);
+    ArduinoOTA.setPassword(OTApassword);
     ArduinoOTA.begin();
 
     ArduinoOTA.onStart([]()
@@ -109,14 +109,15 @@ void readSettings()
                 JsonDocument settings;
                 String settingsFile = http.getString();
                 DeserializationError error = deserializeJson(settings, settingsFile);
+                // int error= 0;
                 if (error)
                 {
                     ESP_LOGI(TAG, "Error %s", error);
                     http.end();
                     return;
                 }
-
-                int rotation = settings["rotation"].as<int>();
+                int rotation = 3;
+                rotation = settings["rotation"].as<int>();
                 //                ESP_LOGI("Net", "Rotation = %i", rotation);
                 screenRotation(rotation);
 
@@ -126,10 +127,7 @@ void readSettings()
                 screenTimeoutSettings = settings["timeout"].as<long>();
                 //                ESP_LOGI("Net", "Timeout = %l", screenTimeoutSettings);
 
-                // portraitScreen = settings["portraitScreen"].as<bool>();
-                //                 ESP_LOGI("Net", "Portrait Screen = %s", portraitScreen ? "TRUE" : "FALSE");
-
-                bool debug = settings["debug"].as<bool>();
+                //                bool debug = settings["debug"].as<bool>();
                 //                ESP_LOGI("Net", "Debug mode = %s", debug ? "TRUE" : "FALSE");
             }
             else
@@ -172,13 +170,13 @@ void processCore()
                     if (payload == "MENU")
                     {
                         ESP_LOGI(TAG, "Showing local: %s", payload);
-                        tft->fillScreen(BLACK);
+                        clearScreen();
                         showLocalImage(PIC_MENU);
                     }
                     else
                     {
                         ESP_LOGI(TAG, "Showing URL Core: %s ", payload);
-                        tft->fillScreen(BLACK);
+                        clearScreen();
                         showCore(payload);
                     }
                 }
@@ -197,7 +195,7 @@ void processCore()
         else
         {
             ESP_LOGI(TAG, "WiFi Disconnected");
-            tft->fillScreen(BLACK);
+            clearScreen();
             showLocalImage(PIC_NO_WIFI);
         }
         lastTimeCore = millis();

@@ -16,8 +16,8 @@
 #include <String.h>
 
 #define ADC_PIN 4
+static const char *TAG = "MAIN";
 
-const uint8_t *DEFAULT_FONT = u8g2_font_helvB14_te; // u8g2_font_6x10_mf;
 
 //----------------------------------------------
 void setup(void)
@@ -42,9 +42,16 @@ void setup(void)
   Serial.printf("Build version: %s\n", BUILD_VERSION);
   Serial.setTimeout(500); // Set max. Serial "Waiting Time", default = 1000ms
 
+  // show what levels are supported
+  ESP_LOGE(TAG, "Error Reporting On");
+  ESP_LOGW(TAG, "Warning Reporting On");
+  ESP_LOGI(TAG, "Information Reporting On");
+  ESP_LOGD(TAG, "Debug Reporting On");
+  ESP_LOGV(TAG, "Verbose Reporting On");
+
   tftInit();
 
-#ifdef USE_SPIFFS
+#ifdef USE_INTERNAL_SPIFFS
   if (!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
   {
     footbanner("Error while initialising SPIFFS. Halting.");

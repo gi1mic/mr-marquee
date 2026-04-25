@@ -8,7 +8,7 @@
 #include <FileFetcher.h>
 #include <ArduinoOTA.h>
 
-#ifdef USE_SPIFFS
+#ifdef USE_INTERNAL_SPIFFS
 #include <SPIFFS.h>
 #else
 #include <SD_MMC.h>
