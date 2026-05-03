@@ -10,7 +10,6 @@
 #include <JPEGDEC.h>
 #include "include.h"
 
-
 // Increasing the buffer sizes does not seem to be necessary
 // so commenting out for now .....
 //
@@ -33,7 +32,7 @@ int32_t jpegReadFile(JPEGFILE *pFile, uint8_t *pBuf, int32_t iLen);
 int32_t jpegSeekFile(JPEGFILE *pFile, int32_t iPosition);
 void jpegDraw(const char *filename, JPEG_DRAW_CALLBACK *jpegDrawCallback, bool useBigEndian, int x, int y, int widthLimit, int heightLimit, int _scale);
 
-// Function definitions
+//----------------------------------------------
 void *jpegOpenFile(const char *szFilename, int32_t *pFileSize)
 {
 //  ESP_LOGI(__FILE__, "jpegOpenFile: %s", String(szFilename));
@@ -47,6 +46,7 @@ void *jpegOpenFile(const char *szFilename, int32_t *pFileSize)
   return &_f;
 }
 
+//----------------------------------------------
 void jpegCloseFile(void *pHandle)
 {
   ESP_LOGD(__FILE__, "jpegCloseFile");
@@ -54,6 +54,7 @@ void jpegCloseFile(void *pHandle)
   f->close();
 }
 
+//----------------------------------------------
 int32_t jpegReadFile(JPEGFILE *pFile, uint8_t *pBuf, int32_t iLen)
 {
   ESP_LOGD(__FILE__, "jpegReadFile, iLen: %d", iLen);
@@ -62,6 +63,7 @@ int32_t jpegReadFile(JPEGFILE *pFile, uint8_t *pBuf, int32_t iLen)
   return r;
 }
 
+//----------------------------------------------
 int32_t jpegSeekFile(JPEGFILE *pFile, int32_t iPosition)
 {
   ESP_LOGD(__FILE__, "jpegSeekFile, pFile->iPos: %d, iPosition: %d\n", pFile->iPos, iPosition);
@@ -70,6 +72,7 @@ int32_t jpegSeekFile(JPEGFILE *pFile, int32_t iPosition)
   return iPosition;
 }
 
+//----------------------------------------------
 void jpegDraw(
     const char *filename, JPEG_DRAW_CALLBACK *jpegDrawCallback, bool useBigEndian,
     int x, int y, int widthLimit, int heightLimit, int _scale)

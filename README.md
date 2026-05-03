@@ -1,6 +1,6 @@
 # mr-marquee
 Colour Marquees for MiSTer FPGA. 
-Like tty2oled but using a colour screen and Wi-Fi to allow for remote connections instead of a USB port.
+Similar to tty2oled but using a colour screen and Wi-Fi to allow for remote connections instead of a USB port.
 
 ![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/n64.jpg?raw=true)
 ![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/ps1.jpg?raw=true)
@@ -12,12 +12,14 @@ Since we are using ESP32 Wi-Fi for communication the MiSTer FPGA will need to be
 
 If you do not already have a MiSTer system, I highly recommend a Multisystem2 [from](https://multisystem.uk/products/mister-multisystem-2/).
 
+You can optionaly enable the display of current game images by installing the "remote" script on you Mister system and enabling "remote" support either by selecting the checkbox during Wi-Fi configuration. 
+
 ### Operation on the MiSTer system
 The mr-marquee service provides the following features:
 1) it allows the mister system to be discovered on the network via the network name "mister.local"
 2) it creates a web server that allows a remote system to read the current running core
-3) It shares a settings.json file providing configuration information to the remote system
-4) It shares a folder called banners containing JPG marquees.
+3) It shares a settings.json file providing configuration data the ESP32 display
+4) It shares a folder called marquees containing JPG images.
 
 ### Operation on the ESP32
 
@@ -28,7 +30,11 @@ mr-marquee web server to get the current running corename. If no core is running
 
 If a core name is received it uses that name to download a marquee image via HTTP and display it on the local colour screen.
 
+If the "remote" option is enabled it will query the remote script API to discover the current running game name and append it to the core name and try displaying that image falling back to just the core name if it is not found.
+
 The screen will go blank after a predetermined time if the mister.local webserver can’t be contacted i.e. the MiSTer FPGA unit has been turned off. It will turn back on again once a connection can be reestablished.
+
+It uses the built-in gyyro on the waveshare board to rotate the orentation of the screen.
 
 The ESP32 should appear on the local network as "mr_marquee.local" and the application includes a simple web-based file management system for updating the system files held on the SPIFFS filesystem of the ESP32. 
 
@@ -56,14 +62,17 @@ You can check the server is running by pointing a web browser to
 > http://mister.local:8090/
 and viewing some of the available marquees
 
+Optionally install the "remote" script for MiSTer and enable the remote option during Wi-Fi configuration if you want to show core - current running game images.
+
 
 ## ESP32 programming
 Once you have the files installed on your MiSTer system you can program either a Waveshare ESP32-S3 3.16" screen or a Cheap Yellow Display (CYD) by connecting it to an available USB port. Please make sure it is the ONLY ESP32 device connected to your MiSTer system as no checks are undertaken!!
 
 CD into /media/fat/mr-marquee/esptools. And run the command 
-> ./flash-mr-marquee-cyd.sh
- or 
  > ./flash-mr-marquee-waveshare.sh.
+or 
+> ./flash-mr-marquee-cyd.sh // The CYD code needs more work to seperate it out from the waveshare specic code
+
 
 After a few seconds the ESP32 will reboot and show a Wi-Fi icon and the connection details on its screen. 
 

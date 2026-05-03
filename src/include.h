@@ -20,13 +20,12 @@
 #endif
 
 #define OTApassword "password" // <- Match this password with the one in platform.ini
-#define BAUDRATE 115200 // // 115200 for MiSTer ttyUSBx
+#define BAUDRATE 115200
 #define PRODUCT_NAME "mr_marquee"
-#define BUILD_VERSION "260424"
+#define BUILD_VERSION "260503"
 #define PIC_MENU "menu"
 #define PIC_ERROR "no-image"
 #define PIC_NO_WIFI "no-wifi"
 #define PIC_DOWNLOADING "ota-update"
-
 
 #endif // INCLUDE_H

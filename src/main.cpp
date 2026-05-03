@@ -1,5 +1,4 @@
 #include <Arduino.h>
-#include <Wire.h>
 #include <U8g2lib.h>
 #include <ESP32Time.h>
 #include "SPI.h"
@@ -16,12 +15,13 @@
 #include <String.h>
 
 #define ADC_PIN 4
-static const char *TAG = "MAIN";
 
+static const char *TAG = "MAIN";
 
 //----------------------------------------------
 void setup(void)
 {
+
   Serial.begin(BAUDRATE);
   int cnt = 100;
   while (!Serial || (cnt-- > 0)) // Wait for Serial to initialize
@@ -42,7 +42,7 @@ void setup(void)
   Serial.printf("Build version: %s\n", BUILD_VERSION);
   Serial.setTimeout(500); // Set max. Serial "Waiting Time", default = 1000ms
 
-  // show what levels are supported
+  // Show what log levels will be displayed
   ESP_LOGE(TAG, "Error Reporting On");
   ESP_LOGW(TAG, "Warning Reporting On");
   ESP_LOGI(TAG, "Information Reporting On");
@@ -76,22 +76,76 @@ void setup(void)
   ESP_LOGI("SD", "SD_MMC Card Size: %lluMB\n", SD_MMC.cardSize() / (1024 * 1024));
 #endif
 
-//  loadWiFiConfig();
+#ifdef PERFORM_CALIBRATION
+  Serial.println("FastIMU calibration");
+  if (IMU.hasMagnetometer())
+  {
+    delay(1000);
+    Serial.println("Move IMU in figure 8 pattern until done.");
+    delay(3000);
+    IMU.calibrateMag(&calib);
+    Serial.println("Magnetic calibration done!");
+  }
+  else
+  {
+    delay(5000);
+  }
+
+  delay(5000);
+  Serial.println("Keep IMU level.");
+  delay(5000);
+  IMU.calibrateAccelGyro(&calib);
+  Serial.println("Calibration done!");
+  Serial.println("Accel biases X/Y/Z: ");
+  Serial.print(calib.accelBias[0]);
+  Serial.print(", ");
+  Serial.print(calib.accelBias[1]);
+  Serial.print(", ");
+  Serial.println(calib.accelBias[2]);
+  Serial.println("Gyro biases X/Y/Z: ");
+  Serial.print(calib.gyroBias[0]);
+  Serial.print(", ");
+  Serial.print(calib.gyroBias[1]);
+  Serial.print(", ");
+  Serial.println(calib.gyroBias[2]);
+  if (IMU.hasMagnetometer())
+  {
+    Serial.println("Mag biases X/Y/Z: ");
+    Serial.print(calib.magBias[0]);
+    Serial.print(", ");
+    Serial.print(calib.magBias[1]);
+    Serial.print(", ");
+    Serial.println(calib.magBias[2]);
+    Serial.println("Mag Scale X/Y/Z: ");
+    Serial.print(calib.magScale[0]);
+    Serial.print(", ");
+    Serial.print(calib.magScale[1]);
+    Serial.print(", ");
+    Serial.println(calib.magScale[2]);
+  }
+  delay(5000);
+  IMU.init(calib, IMU_ADDRESS);
+#endif
+
+  loadConfig();
   connectWiFi();
   startOTA();
   startMdns();
-  startFileManager();
 
   showLocalImage(PIC_MENU);
   writetext("Ver: " BUILD_VERSION, false, 600, 300, TFT_FONT_SMALL, 3, WHITE, false, "");
+  startFileManager();
 }
 
 // ================ MAIN LOOP ===================
 void loop(void)
 {
+  screenAutoRotation();
   processCore();
   readSettings();
   filemgr.handleClient();
   ArduinoOTA.handle();
+  checkButtonPressed();
+  delay(50);
 }
 // =========== End of main routines =============

@@ -97,31 +97,29 @@ extern Arduino_RGB_Display *tft;
 #define TFT_FONT_LARGE  u8g2_font_fub30_tf
 #endif
 
-
 extern int DispWidth;
 extern int DispHeight;
+extern int currentRotation;
 extern const uint8_t *DEFAULT_FONT;
-extern String currentCore;
+extern String currentCore, currentGame;
 extern bool videoPlay;
 
 bool showLocalImage(String core);
 bool showVideo(String actCorename, int videoposX, int videoposY);
 void writetext(String text, int fixedpos, int textposX, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear);
-
-void showCore(const String& coreName);
+void showCore(const String &core, const String &gameName);
 void screenOn(void);
 void screenOff(void);
 void cmdHWInfo(void);
 void screenRotation(int rotation);
 void screenText(char *sParam);
 void clearScreen();
-
-
+void screenAutoRotation();
+void showPayload(String payload, String gameName);
 void tftInit();
 void writetext(String text, int fixedpos, int textposX, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear);
 void writetextcentered(String text, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear);
 void footbanner(String bannertext);
-
 bool showVideo(String actCorename, int videoposX, int videoposY);
 void showJpegImage(String actCorename, int pictureposX, int pictureposY, int scale);
 void rectfill(int posX, int posY, int rectwidth, int rectheight, int fillcolor);
@@ -129,8 +127,6 @@ bool showLocalImage(String core);
 bool fetchfile(String fetchURL, String fetchfilename);
 bool showImageURL(char *imageUrl);
 bool showCorenameURL(String core);
-
-
 String addPathAndExtension(String core, String fileext);
 
 #endif

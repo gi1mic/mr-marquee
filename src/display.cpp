@@ -6,10 +6,14 @@
 #include "filesystem.h"
 #include "network.h"
 #include "FileFetcher.h"
+#include <UrlEncode.h>
+#include <Wire.h>
+#include "FastIMU.h"
 
 static const char *TAG = "DISP";
 
 String currentCore = ""; // Corename
+String currentGame = ""; // Current running game as provided by MiSTer Remote
 int currentRotation = DEFAULT_ROTATION;
 bool videoPlay = false;
 
@@ -17,8 +21,19 @@ String folderjpg = "/jpg/";
 String foldermjpeg = "/mjpeg/";
 String dirletter = "";
 
-
 #ifdef WAVESHARE
+
+// #define PERFORM_CALIBRATION // Comment to disable IMU startup calibration
+#define IMU_SDA 15
+#define IMU_SCL 7
+#define IMU_ADDRESS 0x6b
+QMI8658 imu; // Change to the name of any supported IMU!
+
+calData calib = {0}; // Calibration data
+AccelData accelData; // Sensor data
+GyroData gyroData;
+MagData magData;
+
 Arduino_DataBus *bus = new Arduino_ESP32SPI(GFX_NOT_DEFINED, 0, 2 /* SCK */, 1 /* MOSI */, GFX_NOT_DEFINED /* MISO */, FSPI /* spi_num */);
 
 Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
@@ -49,6 +64,39 @@ int DispHeight = 0;
 //----------------------------------------------
 void tftInit()
 {
+    if (!Wire.begin(IMU_SDA, IMU_SCL))
+    {
+        Serial.println("WIRE ERROR !!");
+    }
+    Wire.setClock(400000); // 400khz clock
+
+    int err = imu.init(calib, IMU_ADDRESS);
+    if (err != 0)
+    {
+        Serial.print("Error initializing IMU: ");
+        Serial.println(err);
+        while (true)
+        {
+            ;
+        }
+    }
+
+#ifdef PERFORM_CALIBRATION
+    Serial.println("FastIMU calibration & data example");
+    if (IMU.hasMagnetometer())
+    {
+        delay(1000);
+        Serial.println("Move IMU in figure 8 pattern until done.");
+        delay(3000);
+        IMU.calibrateMag(&calib);
+        Serial.println("Magnetic calibration done!");
+    }
+    else
+    {
+        delay(5000);
+    }
+#endif
+
     tft->begin();
     tft->setRotation(DEFAULT_ROTATION);
     tft->invertDisplay(true);
@@ -60,6 +108,7 @@ void tftInit()
     ESP_LOGI(TAG, "Display width: %d, height: %d\n", DispWidth, DispHeight);
 }
 
+//----------------------------------------------
 void clearScreen()
 {
     tft->fillScreen(BLACK);
@@ -122,6 +171,34 @@ void footbanner(String bannertext)
 }
 
 //----------------------------------------------
+void showPayload(String payload, String gameName)
+{
+    if (payload == "")
+        payload = "MENU";
+    ESP_LOGI(TAG, "Core = %s currentCore: %s | gameName = %s currentGame: %s ", payload.c_str(), currentCore.c_str(), gameName.c_str(), currentGame.c_str());
+
+    payload.trim(); // Fix the issue of ScummVM adding a \r to the end of the payload
+
+    if ((payload != currentCore) || (gameName != currentGame))
+    {
+        currentCore = payload;
+        currentGame = gameName;
+        if (payload == "MENU")
+        {
+            ESP_LOGI(TAG, "Showing local: %s", payload);
+            clearScreen();
+            showLocalImage(PIC_MENU);
+        }
+        else
+        {
+            ESP_LOGI(TAG, "Showing URL Core: %s ", payload);
+            clearScreen();
+            showCore(payload, urlEncode(gameName));
+        }
+    }
+}
+
+//----------------------------------------------
 void showJpegImage(String core, int pictureposX, int pictureposY, int scale)
 {
     ESP_LOGD(TAG, "Play pic: %s", core.c_str());
@@ -180,7 +257,7 @@ bool showImageURL(char *imageUrl)
     ESP_LOGI(TAG, "Showing URL: %s", imageUrl);
 
     uint8_t *imageFile; // pointer that the library will store the image at (uses malloc)
-    int imageSize;      // library will update the size of the image
+    int imageSize;      // library will return the size of the image
     bool gotImage = fileFetcher.getFile(imageUrl, &imageFile, &imageSize);
 
     if (gotImage) // imageFile is now a pointer to memory that contains the image file
@@ -332,29 +409,33 @@ String addPathAndExtension(String core, String fileext)
 }
 
 //----------------------------------------------
-void showCore(const String &core)
+void showCore(const String &core, const String &gameName)
 {
     int result = false;
 
     if (videoPlay)
-    { // Check if we should try playing videos (see settings.json)
-        //    addPathAndExtension(core, "mjpg");
+    { // Check if we should try playing videos (see settings.json on the server)
+        // addPathAndExtension(core, "mjpg");
         // tbc: try playing video url
-        ESP_LOGD(TAG, "Trying mjpg file: %s", core.c_str());
+        ESP_LOGI(TAG, "Trying mjpg file: %s", core.c_str());
     }
     else
     {
-        ESP_LOGD(TAG, "Trying jpg file: %s", core.c_str());
-        if (!showCorenameURL(core))
+        ESP_LOGI(TAG, "Trying jpg file: %s - %s", core.c_str(), gameName.c_str());
+        if (!showCorenameURL(core + "-" + gameName))
         {
-            if (!showLocalImage(PIC_ERROR))
+            ESP_LOGI(TAG, "Trying jpg file: %s", core.c_str());
+            if (!showCorenameURL(core))
             {
-                ESP_LOGI(TAG, "Core image not found on server or locally: %s", core.c_str());
-            }
-            else
-            {
-                footbanner("Image for " + core + " not found");
-                currentCore = core;
+                if (!showLocalImage(PIC_ERROR))
+                {
+                    ESP_LOGI(TAG, "Core image not found on server or locally: %s", core.c_str());
+                }
+                else
+                {
+                    footbanner("Image for " + core + " not found");
+                    currentCore = core;
+                }
             }
         }
     }
@@ -390,7 +471,7 @@ void screenRotation(int rotation)
     {
         currentRotation = rotation;
         tft->setRotation(rotation);
-        showLocalImage(currentCore);
+        currentCore = "....."; // Force redraw
     }
 }
 
@@ -403,4 +484,40 @@ void screenText(char *sParam)
         return;
     }
     writetext(sParam, 1, DispWidth / 2 - ((strlen(sParam) * 10) / 2), 200, TFT_FONT_LARGE, 0, WHITE, false, "clear");
+}
+
+//-----------------------------------------------
+void screenAutoRotation()
+{
+    imu.update(); // Read the sensor data
+    imu.getAccel(&accelData);
+    imu.getGyro(&gyroData);
+
+    // Determine current orientation
+    if (abs(accelData.accelX) > abs(accelData.accelY))
+    {
+        if (accelData.accelX > 0)
+        {
+            screenRotation(3);
+            ESP_LOGD(TAG, "Landscape Right");
+        }
+        else
+        {
+            screenRotation(1);
+            ESP_LOGD(TAG, "Landscape Left");
+        }
+    }
+    else
+    {
+        if (accelData.accelY > 0)
+        {
+            screenRotation(0);
+            ESP_LOGD(TAG, "Portrait");
+        }
+        else
+        {
+            screenRotation(2);
+            ESP_LOGD(TAG, "Portrait Upside Down");
+        }
+    }
 }
