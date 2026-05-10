@@ -11,7 +11,6 @@
 #include <WiFiManager.h> //
 #include <UrlEncode.h>
 
-
 static const char *TAG = "NET";
 
 using namespace std;
@@ -45,7 +44,7 @@ void loadConfig()
 #endif
     if (!filehandle)
     {
-        footbanner("Could not open config.json");
+        writetextcentered("Could not open config.json", FOOTER_LINE, 0, WHITE, false, "noclear");
         ESP_LOGI(TAG, "Could not open the file config.json");
         while (1)
             delay(0);
@@ -72,7 +71,7 @@ void configModeCallback(WiFiManager *myWiFiManager)
 {
     showLocalImage(PIC_NO_WIFI);
     String msg = "SSID: " + myWiFiManager->getConfigPortalSSID() + "  http://" + WiFi.softAPIP().toString();
-    footbanner(msg);
+    writetextcentered(msg, FOOTER_LINE, 0, BLUE, false, "noclear");
     Serial.println(msg);
 }
 
@@ -158,11 +157,8 @@ void connectWiFi()
 //----------------------------------------------
 void checkButtonPressed()
 {
-#ifdef HUB75
-    if (digitalRead(TRIGGER_PIN) == HIGH)
-#else
+
     if (digitalRead(TRIGGER_PIN) == LOW)
-#endif
     {
         wm.resetSettings(); // Uncomment to clear saved WiFi details (For testing only)
         Serial.println("Re-start to Wi-Fi config mode");
@@ -292,7 +288,6 @@ void processCore()
                         http.end();
                         return;
                     }
-
                     String payload = settings["core"];
                     String gameName = settings["gameName"].as<String>();
                     showPayload(payload, gameName);
@@ -305,19 +300,17 @@ void processCore()
                     showPayload(payload, "");
                 }
             }
-
+            else
+            {
+                ESP_LOGI(TAG, "ScreenTimeout: %d", screenTimeout);
+                if (screenTimeout-- <= 0)
+                {
+                    screenOff();
+                    screenTimeout = 0;
+                }
+            }
             http.end();
         }
-        else
-        {
-            ESP_LOGI(TAG, "ScreenTimeout: %d", screenTimeout);
-            if (screenTimeout-- <= 0)
-            {
-                screenOff();
-                screenTimeout = 0;
-            }
-        }
-
         lastTimeCore = millis();
     }
 }

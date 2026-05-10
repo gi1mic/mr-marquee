@@ -121,14 +121,15 @@ void tftInit()
     // mxconfig.driver = HUB75_I2S_CFG::FM6126A;
 
     tft = new MatrixPanel_I2S_DMA(mxconfig);
-    // Display Setup
     tft->begin();
 
-;    tft->setBrightness8(125); // 0-255
+    tft->setBrightness8(125); // 0-255
     tft->clearScreen();
     tft->setTextSize(1);     // size 1 == 8 pixels high
     tft->setTextWrap(false); // Don't wrap at end of line - will do ourselves
     tft->setCursor(5, 0);    // start at top left, with 8 pixel of spacing
+
+// HUB75 test code    
 //    tft->fillScreen(RED);
 //    tft->setTextColor(tft->color444(15, 0, 0));
 //    tft->println("Mr Marquee!");
@@ -145,7 +146,7 @@ void tftInit()
 //    tft->setTextColor(tft->color444(0, 0, 15));
 //    tft->println("Mr Marquee!");
 //    delay(3000);
-    // draw an 'X' in red
+//    // draw an 'X' in red
 //    tft->drawLine(0, 0, tft->width() - 1, tft->height() - 1, tft->color444(15, 0, 0));
 //    tft->drawLine(tft->width() - 1, 0, 0, tft->height() - 1, tft->color444(15, 0, 0));
 //    delay(3000);
@@ -232,7 +233,7 @@ void writetext(String text, int fixedpos, int textposX, int textposY, const uint
 }
 
 //----------------------------------------------
-void writetextcentered(String text, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear)
+void writetextcentered(String text, int textposY, int textrotation, int fontcolor, int backcolor, String clear)
 {
     if (clear == "clear")
         tft->fillScreen(BLACK);
@@ -257,15 +258,6 @@ void writetextcentered(String text, int textposY, const uint8_t *fontname, int t
     tft->print(text);
 }
 
-//----------------------------------------------
-void footbanner(String bannertext)
-{
-#ifdef HUB75
-    writetext(bannertext, 1, DispWidth / 2 - ((bannertext.length() * 20) / 2), FOOTER_LINE, 0, RED, false, "");
-#else
-    writetext(bannertext, 1, DispWidth / 2 - ((bannertext.length() * 20) / 2), FOOTER_LINE, TFT_FONT_LARGE, 0, RED, false, "");
-#endif
-}
 
 //----------------------------------------------
 void showPayload(String payload, String gameName)
@@ -389,7 +381,7 @@ bool showVideo(String core, int videoposX, int videoposY)
     if (!filehandle || filehandle.isDirectory())
     {
         ESP_LOGI(TAG, "ERROR: Failed to open %s file for reading", fqn);
-        footbanner("ERROR: Failed to open " + fqn + " file for reading");
+        writetextcentered("ERROR: Failed to open " + fqn + " file for reading", FOOTER_LINE, 0, WHITE, false, "noclear");
         return false;
     }
     else
@@ -397,7 +389,7 @@ bool showVideo(String core, int videoposX, int videoposY)
         if (!mjpeg_buf)
         {
             ESP_LOGI(TAG, "mjpeg_buf malloc failed!");
-            footbanner("mjpeg_buf malloc failed!");
+            writetextcentered("ERROR: mjpeg_buf malloc failed!", FOOTER_LINE, 0, WHITE, false, "noclear");
             return false;
         }
         else
@@ -499,7 +491,7 @@ bool fetchfile(String fetchBaseURL, String core)
             ESP_LOGI(TAG, "Missing picture or another error");
             tft->fillScreen(BLACK);
             showJpegImage(addPathAndExtension(PIC_ERROR, "jpg"), 0, 0, 0);
-            footbanner("ERROR: Failed to fetch " + core + " from server");
+            writetextcentered("ERROR: Failed to fetch " + core + " from server", FOOTER_LINE, 0, WHITE, false, "noclear");
             return false;
         }
         else
@@ -553,7 +545,7 @@ void showCore(const String &core, const String &gameName)
                 }
                 else
                 {
-                    footbanner("Image for " + core + " not found");
+                    writetextcentered("Image for " + core + " not found", FOOTER_LINE, 0, WHITE, false, "noclear");
                     currentCore = core;
                 }
             }
@@ -573,8 +565,10 @@ void screenOn(void)
 //----------------------------------------------
 void screenOff(void)
 {
-#ifndef HUB75
-    ESP_LOGD(TAG, "Turn screen backlight off");
+    ESP_LOGD(TAG, "Turning screenoff");
+#ifdef HUB75
+    clearScreen();
+#else
     digitalWrite(TFT_BL, TFT_BACKLIGHT_OFF);
 #endif
 }

@@ -33,6 +33,8 @@ void setup(void)
   pinMode(TFT_BL, OUTPUT);
 #endif
 
+  pinMode(TRIGGER_PIN, INPUT_PULLUP); // Button to trigger WiFi config mode
+
   randomSeed(analogRead(ADC_PIN)); // Init Random Generator with empty Port Analog value
 
   Serial.setDebugOutput(true);
@@ -56,7 +58,7 @@ void setup(void)
 #ifdef USE_INTERNAL_SPIFFS
   if (!SPIFFS.begin(FORMAT_SPIFFS_IF_FAILED))
   {
-    footbanner("Error while initialising SPIFFS. Halting.");
+    writetextcentered("Error while initialising SPIFFS. Halting.", FOOTER_LINE, 0, WHITE, false, "noclear");
     return;
   }
 #else
@@ -135,11 +137,8 @@ void setup(void)
   startMdns();
 
   showLocalImage(PIC_MENU);
-#ifdef HUB75
-  writetext("Ver: " BUILD_VERSION, false, 600, 300, 3, WHITE, false, "");
-#else
-  writetext("Ver: " BUILD_VERSION, false, 600, 300, TFT_FONT_SMALL, 3, WHITE, false, "");
-#endif
+  writetextcentered("Version: " BUILD_VERSION, FOOTER_LINE, 0, WHITE, false, "noclear");
+
   startFileManager();
 }
 

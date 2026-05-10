@@ -117,7 +117,7 @@ int getFile(String url, String targetFilename)
     int filesize = 0;
 
     clearScreen();
-    footbanner("Downloading... ");
+    writetextcentered("Downloading... ", FOOTER_LINE, 0, WHITE, false, "noclear");
     if ((WiFi.status() == WL_CONNECTED))
     { // Check WiFi connection
         ESP_LOGI(TAG, "[HTTP] begin...");

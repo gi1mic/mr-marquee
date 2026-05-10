@@ -22,7 +22,7 @@
 #define OTApassword "password" // <- Match this password with the one in platform.ini
 #define BAUDRATE 115200
 #define PRODUCT_NAME "mr_marquee"
-#define BUILD_VERSION "260503"
+#define BUILD_VERSION "260510"
 #define PIC_MENU "menu"
 #define PIC_ERROR "no-image"
 #define PIC_NO_WIFI "no-wifi"

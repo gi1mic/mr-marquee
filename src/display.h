@@ -133,8 +133,6 @@ extern Arduino_GFX *tft;
 #define OE_PIN 14
 #define CLK_PIN 2
 
-
-
 extern MatrixPanel_I2S_DMA *tft;
 
 #define BLACK {tft->color565(0, 0, 0)}
@@ -167,8 +165,7 @@ void showPayload(String payload, String gameName);
 void tftInit();
 void writetext(String text, int fixedpos, int textposX, int textposY, int textrotation, int fontcolor, int backcolor, String clear);
 void writetext(String text, int fixedpos, int textposX, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear);
-void writetextcentered(String text, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear);
-void footbanner(String bannertext);
+void writetextcentered(String text, int textposY, int textrotation, int fontcolor, int backcolor, String clear);
 bool showVideo(String actCorename, int videoposX, int videoposY);
 void showJpegImage(String actCorename, int pictureposX, int pictureposY, int scale);
 void rectfill(int posX, int posY, int rectwidth, int rectheight, int fillcolor);
