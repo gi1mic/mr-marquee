@@ -1,10 +1,11 @@
 #ifndef DISPLAY_H
 #define DISPLAY_H
 
-#include <Arduino_GFX_Library.h> 
-   
-#define DEFAULT_ROTATION 3
 
+
+#define MJPEG_BUFFER_SIZE (TFT_WIDTH * TFT_HEIGHT * 2 / 4) // memory for a single JPEG frame
+
+#ifdef WAVESHARE
 #define WHITE RGB565_WHITE
 #define BLACK RGB565_BLACK
 #define RED RGB565_RED
@@ -22,11 +23,13 @@
 #define DARKGREEN RGB565_DARKGREEN
 #define DARKBLUE RGB565_DARKBLUE
 
-// TFT
+#include <Arduino_GFX_Library.h>
 
-#define MJPEG_BUFFER_SIZE (TFT_WIDTH * TFT_HEIGHT * 2 / 4) // memory for a single JPEG frame
+extern Arduino_RGB_Display *tft;
+#define TFT_FONT_SMALL u8g2_font_helvB12_te
+#define TFT_FONT_NORMAL u8g2_font_inr21_mf
+#define TFT_FONT_LARGE u8g2_font_fub30_tf
 
-#ifdef WAVESHARE
 // Init sequence for Waveshare 3.16" 820x320 ST7701S display
 static const uint8_t st7701_type10_init_operations[] = {
   BEGIN_WRITE,
@@ -82,19 +85,64 @@ static const uint8_t st7701_type10_init_operations[] = {
   DELAY, 20,
   END_WRITE,
 };
-
 #endif
 
 #ifdef ILI9341_2_DRIVER
+#include <Arduino_GFX_Library.h>
+
+#define WHITE RGB565_WHITE
+#define BLACK RGB565_BLACK
+#define RED RGB565_RED
+#define GREEN RGB565_GREEN
+#define BLUE RGB565_BLUE
+#define YELLOW RGB565_YELLOW
+#define CYAN RGB565_CYAN
+#define MAGENTA RGB565_MAGENTA
+#define ORANGE RGB565_ORANGE
+#define PINK RGB565_PINK
+#define GREY RGB565_GREY
+#define DARKGREY RGB565_DARKGREY
+#define LIGHTGREY RGB565_LIGHTGREY
+#define DARKRED RGB565_DARKRED
+#define DARKGREEN RGB565_DARKGREEN
+
+
 extern Arduino_GFX *tft;
-#define TFT_FONT_SMALL  u8g2_font_6x12_tn 
+#define TFT_FONT_SMALL u8g2_font_6x12_tn
 #define TFT_FONT_NORMAL u8g2_font_helvB12_te
-#define TFT_FONT_LARGE  u8g2_font_inr21_mf
-#else
-extern Arduino_RGB_Display *tft;
-#define TFT_FONT_SMALL  u8g2_font_helvB12_te
-#define TFT_FONT_NORMAL u8g2_font_inr21_mf
-#define TFT_FONT_LARGE  u8g2_font_fub30_tf
+#define TFT_FONT_LARGE u8g2_font_inr21_mf
+#endif
+
+#ifdef HUB75
+
+#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
+#include <GFX_Lite.h>
+
+#define R1_PIN 42
+#define G1_PIN 41
+#define B1_PIN 40
+#define R2_PIN 38
+#define G2_PIN 39
+#define B2_PIN 37
+#define A_PIN 45
+#define B_PIN 36
+#define C_PIN 48
+#define D_PIN 35
+#define E_PIN 21 // required for 1/32 scan panels, like 64x64px. Any available pin would do, i.e. IO32
+#define LAT_PIN 47
+#define OE_PIN 14
+#define CLK_PIN 2
+
+
+
+extern MatrixPanel_I2S_DMA *tft;
+
+#define BLACK {tft->color565(0, 0, 0)}
+#define WHITE {tft->color565(255, 255, 255)}
+#define RED   {tft->color565(255, 0, 0)}
+#define GREEN {tft->color565(0, 255, 0)}
+#define BLUE  {tft->color565(0, 0, 255)}
+
 #endif
 
 extern int DispWidth;
@@ -117,6 +165,7 @@ void clearScreen();
 void screenAutoRotation();
 void showPayload(String payload, String gameName);
 void tftInit();
+void writetext(String text, int fixedpos, int textposX, int textposY, int textrotation, int fontcolor, int backcolor, String clear);
 void writetext(String text, int fixedpos, int textposX, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear);
 void writetextcentered(String text, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear);
 void footbanner(String bannertext);

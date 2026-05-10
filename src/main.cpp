@@ -1,4 +1,5 @@
 #include <Arduino.h>
+#include "include.h"
 #include <U8g2lib.h>
 #include <ESP32Time.h>
 #include "SPI.h"
@@ -11,7 +12,6 @@
 #include "network.h"
 #include <WebServer.h>
 #include <ESPFMfGK.h>
-#include "include.h"
 #include <String.h>
 
 #define ADC_PIN 4
@@ -29,7 +29,9 @@ void setup(void)
     delay(50);
   }
 
+#ifndef HUB75
   pinMode(TFT_BL, OUTPUT);
+#endif
 
   randomSeed(analogRead(ADC_PIN)); // Init Random Generator with empty Port Analog value
 
@@ -133,7 +135,11 @@ void setup(void)
   startMdns();
 
   showLocalImage(PIC_MENU);
+#ifdef HUB75
+  writetext("Ver: " BUILD_VERSION, false, 600, 300, 3, WHITE, false, "");
+#else
   writetext("Ver: " BUILD_VERSION, false, 600, 300, TFT_FONT_SMALL, 3, WHITE, false, "");
+#endif
   startFileManager();
 }
 

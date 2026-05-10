@@ -11,7 +11,6 @@
 #include <WiFiManager.h> //
 #include <UrlEncode.h>
 
-#define TRIGGER_PIN 0
 
 static const char *TAG = "NET";
 
@@ -36,6 +35,7 @@ int tryGamenameThenCore = 0;
 //----------------------------------------------
 void loadConfig()
 {
+    ESP_LOGD(TAG, "Loading config");
     // Read WiFi Credentials
     File filehandle;
 #ifdef USE_INTERNAL_SPIFFS
@@ -158,7 +158,11 @@ void connectWiFi()
 //----------------------------------------------
 void checkButtonPressed()
 {
+#ifdef HUB75
+    if (digitalRead(TRIGGER_PIN) == HIGH)
+#else
     if (digitalRead(TRIGGER_PIN) == LOW)
+#endif
     {
         wm.resetSettings(); // Uncomment to clear saved WiFi details (For testing only)
         Serial.println("Re-start to Wi-Fi config mode");

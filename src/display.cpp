@@ -1,5 +1,5 @@
-#include "display.h"
 #include "include.h"
+#include "display.h"
 #include "JpegFunc.h"
 #include "MjpegClass.h"
 #include <WiFi.h>
@@ -8,7 +8,6 @@
 #include "FileFetcher.h"
 #include <UrlEncode.h>
 #include <Wire.h>
-#include "FastIMU.h"
 
 static const char *TAG = "DISP";
 
@@ -21,18 +20,22 @@ String folderjpg = "/jpg/";
 String foldermjpeg = "/mjpeg/";
 String dirletter = "";
 
-#ifdef WAVESHARE
-
+#ifdef USE_IMU
+#include "FastIMU.h"
 // #define PERFORM_CALIBRATION // Comment to disable IMU startup calibration
-#define IMU_SDA 15
-#define IMU_SCL 7
-#define IMU_ADDRESS 0x6b
+// #define IMU_SDA 15
+// #define IMU_SCL 7
+// #define IMU_ADDRESS 0x6b
 QMI8658 imu; // Change to the name of any supported IMU!
 
 calData calib = {0}; // Calibration data
 AccelData accelData; // Sensor data
 GyroData gyroData;
 MagData magData;
+
+#endif
+
+#ifdef WAVESHARE
 
 Arduino_DataBus *bus = new Arduino_ESP32SPI(GFX_NOT_DEFINED, 0, 2 /* SCK */, 1 /* MOSI */, GFX_NOT_DEFINED /* MISO */, FSPI /* spi_num */);
 
@@ -50,9 +53,12 @@ Arduino_RGB_Display *tft = new Arduino_RGB_Display(
 #endif
 
 #ifdef ILI9341_2_DRIVER
-
 Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT_MISO);
 Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
+#endif
+
+#ifdef HUB75
+MatrixPanel_I2S_DMA *tft = nullptr;
 #endif
 
 static int jpegDrawCallback(JPEGDRAW *pDraw);
@@ -64,6 +70,8 @@ int DispHeight = 0;
 //----------------------------------------------
 void tftInit()
 {
+
+#ifdef USE_IMU
     if (!Wire.begin(IMU_SDA, IMU_SCL))
     {
         Serial.println("WIRE ERROR !!");
@@ -96,14 +104,67 @@ void tftInit()
         delay(5000);
     }
 #endif
+#endif
 
+#ifdef HUB75
+    HUB75_I2S_CFG::i2s_pins _pins = {R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, LAT_PIN, OE_PIN, CLK_PIN};
+
+    // Module configuration
+    HUB75_I2S_CFG mxconfig(
+        TFT_HEIGHT,  // module width
+        TFT_WIDTH,   // module height
+        PANEL_CHAIN, // Chain length
+        _pins        // pin mapping
+    );
+
+    // mxconfig.clkphase = false;
+    // mxconfig.driver = HUB75_I2S_CFG::FM6126A;
+
+    tft = new MatrixPanel_I2S_DMA(mxconfig);
+    // Display Setup
     tft->begin();
+
+;    tft->setBrightness8(125); // 0-255
+    tft->clearScreen();
+    tft->setTextSize(1);     // size 1 == 8 pixels high
+    tft->setTextWrap(false); // Don't wrap at end of line - will do ourselves
+    tft->setCursor(5, 0);    // start at top left, with 8 pixel of spacing
+//    tft->fillScreen(RED);
+//    tft->setTextColor(tft->color444(15, 0, 0));
+//    tft->println("Mr Marquee!");
+//    delay(3000);
+//    tft->fillScreen(GREEN);
+//    tft->setTextColor(tft->color444(15, 0, 0));
+//    tft->println("Mr Marquee!");
+//    delay(3000);
+//    tft->fillScreen(BLUE);
+//    tft->setTextColor(tft->color444(0, 15, 0));
+//    tft->println("Mr Marquee!");
+//    delay(3000);
+//    tft->fillScreen(WHITE);
+//    tft->setTextColor(tft->color444(0, 0, 15));
+//    tft->println("Mr Marquee!");
+//    delay(3000);
+    // draw an 'X' in red
+//    tft->drawLine(0, 0, tft->width() - 1, tft->height() - 1, tft->color444(15, 0, 0));
+//    tft->drawLine(tft->width() - 1, 0, 0, tft->height() - 1, tft->color444(15, 0, 0));
+//    delay(3000);
+//    tft->fillScreen(WHITE);
+//    // draw a blue circle
+//    tft->drawCircle(10, 10, 10, tft->color444(0, 0, 15));
+//    delay(3000);
+
+#else
+    tft->begin();
+#endif
     tft->setRotation(DEFAULT_ROTATION);
     tft->invertDisplay(true);
     tft->fillScreen(BLACK);
     DispWidth = tft->width();
     DispHeight = tft->height();
+#ifndef HUB75
     tft->setFont(TFT_FONT_NORMAL);
+#endif
     mjpeg_buf = (uint8_t *)malloc(MJPEG_BUFFER_SIZE); // Video buffer
     ESP_LOGI(TAG, "Display width: %d, height: %d\n", DispWidth, DispHeight);
 }
@@ -113,6 +174,38 @@ void clearScreen()
 {
     tft->fillScreen(BLACK);
 }
+
+//----------------------------------------------
+void writetext(String text, int fixedpos, int textposX, int textposY, int textrotation, int fontcolor, int backcolor, String clear)
+{
+    if (tft == nullptr)
+    {
+        ESP_LOGE(TAG, "Error: tft is not initialized!");
+        return;
+    }
+    ESP_LOGD(TAG, "writetext: %s", text.c_str());
+    if (clear == "clear")
+        tft->fillScreen(BLACK);
+    if (fixedpos == 1)
+        tft->setCursor(textposX, textposY); // fixed position
+    if (fixedpos == 0)
+    {
+        int16_t tempX, tempY;
+        uint16_t w, h;
+        tft->getTextBounds(text, textposX, textposY, &tempX, &tempY, &w, &h); // calc width of new string
+        tft->setCursor(textposX - w / 2, textposY);
+    }
+    if (backcolor == false)
+    {
+        tft->setTextColor(fontcolor); // Transparent background
+    }
+    else
+    {
+        tft->setTextColor(fontcolor, backcolor); // Background color
+    }
+    tft->print(text);
+}
+
 //----------------------------------------------
 void writetext(String text, int fixedpos, int textposX, int textposY, const uint8_t *fontname, int textrotation, int fontcolor, int backcolor, String clear)
 {
@@ -167,7 +260,11 @@ void writetextcentered(String text, int textposY, const uint8_t *fontname, int t
 //----------------------------------------------
 void footbanner(String bannertext)
 {
+#ifdef HUB75
+    writetext(bannertext, 1, DispWidth / 2 - ((bannertext.length() * 20) / 2), FOOTER_LINE, 0, RED, false, "");
+#else
     writetext(bannertext, 1, DispWidth / 2 - ((bannertext.length() * 20) / 2), FOOTER_LINE, TFT_FONT_LARGE, 0, RED, false, "");
+#endif
 }
 
 //----------------------------------------------
@@ -201,8 +298,13 @@ void showPayload(String payload, String gameName)
 //----------------------------------------------
 void showJpegImage(String core, int pictureposX, int pictureposY, int scale)
 {
+    if (tft == nullptr)
+    {
+        ESP_LOGE(TAG, "Error: tft is not initialized!");
+        return;
+    }
     ESP_LOGD(TAG, "Play pic: %s", core.c_str());
-    jpegDraw(core.c_str(), jpegDrawCallback, true, pictureposX, pictureposY, tft->width(), tft->height(), scale);
+    jpegDraw(core.c_str(), jpegDrawCallback, true, pictureposX, pictureposY, DispWidth, DispHeight, scale);
     ESP_LOGD(TAG, "Jpeg decode status %i", _jpeg.getLastError());
 }
 
@@ -232,12 +334,12 @@ bool showCorenameURL(String core)
     if (PORTRAIT_SCREEN == true)
     {
         ESP_LOGD(TAG, "Portrait :%s", PORTRAIT_SCREEN ? "True" : "False");
-        fetchBaseURL = fetchBaseURL + "/" + TFT_HEIGHT + "x" + TFT_WIDTH;
+        fetchBaseURL = fetchBaseURL + "/" + DispHeight + "x" + DispWidth;
     }
     else
     {
         ESP_LOGD(TAG, "Portrait :%s", PORTRAIT_SCREEN ? "True" : "False");
-        fetchBaseURL = fetchBaseURL + "/" + TFT_WIDTH + "x" + TFT_HEIGHT;
+        fetchBaseURL = fetchBaseURL + "/" + DispWidth + "x" + DispHeight;
     }
     ESP_LOGD(TAG, "fetchBaseURL: %s", fetchBaseURL.c_str());
 
@@ -303,7 +405,7 @@ bool showVideo(String core, int videoposX, int videoposY)
 
             ESP_LOGD(TAG, "MJPEG start");
 
-            mjpeg.setup(&filehandle, mjpeg_buf, jpegDrawCallback, true, 0, 0, tft->width(), tft->height());
+            mjpeg.setup(&filehandle, mjpeg_buf, jpegDrawCallback, true, 0, 0, DispWidth, DispHeight);
             while (filehandle.available())
             {
                 mjpeg.readMjpegBuf(); // Read video
@@ -317,11 +419,29 @@ bool showVideo(String core, int videoposX, int videoposY)
     return false;
 }
 
+#ifdef HUB75
+//----------------------------------------------
+// This is a Big endian RGB565 bitmap drawing function, for JPEG decoder. 
+// The HUB75 library expects little endian, so we need to swap the bytes. 
+// This is used as the callback for JPEG drawing and video playback.
+void drawRGBBeBitmap(int16_t x, int16_t y, uint16_t *bitmap, int16_t w, int16_t h) 
+{
+  for (int16_t j = 0; j < h; j++, y++) {
+    for (int16_t i = 0; i < w; i++) {
+      tft->drawPixel(x + i, y, (bitmap[j * w + i]>>8) | (bitmap[j * w + i]<<8));
+    }
+  }
+}
+#endif
 //----------------------------------------------
 // pixel drawing callback
 static int jpegDrawCallback(JPEGDRAW *pDraw)
 {
+#ifdef HUB75
+    drawRGBBeBitmap(pDraw->x, pDraw->y, (uint16_t *)pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
+#else
     tft->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
+#endif
     return 1;
 }
 
@@ -348,19 +468,19 @@ bool fetchfile(String fetchBaseURL, String core)
     if (PORTRAIT_SCREEN == true)
     {
         ESP_LOGD(TAG, "Portrait :%s", PORTRAIT_SCREEN ? "True" : "False");
-        fetchBaseURL = fetchBaseURL + TFT_HEIGHT + "x" + TFT_WIDTH + "/jpg/" + prefix;
+        fetchBaseURL = fetchBaseURL + DispHeight + "x" + DispWidth + "/jpg/" + prefix;
     }
     else
     {
         ESP_LOGD(TAG, "Portrait :%s", PORTRAIT_SCREEN ? "True" : "False");
-        fetchBaseURL = fetchBaseURL + TFT_WIDTH + "x" + TFT_HEIGHT + "/jpg/" + prefix;
+        fetchBaseURL = fetchBaseURL + DispWidth + "x" + DispHeight + "/jpg/" + prefix;
     }
 
     fetchBaseURL = fetchBaseURL + addPathAndExtension(core, "mjpg");
     targetFilename = targetFilename + addPathAndExtension(core, "mjpg");
 
     filesize = getFile(fetchBaseURL, targetFilename);
-    ESP_LOGD(TAG, "Get file size: %d for %s", filesize, core.c_str());
+    ESP_LOGI(TAG, "Getting file %s", targetFilename.c_str());
     if (filesize != 0)
     {
         ESP_LOGD(TAG, "Video found, showing video");
@@ -444,15 +564,19 @@ void showCore(const String &core, const String &gameName)
 //----------------------------------------------
 void screenOn(void)
 {
+#ifndef HUB75
     ESP_LOGD(TAG, "Turn screen backlight on");
     digitalWrite(TFT_BL, TFT_BACKLIGHT_ON);
+#endif
 }
 
 //----------------------------------------------
 void screenOff(void)
 {
+#ifndef HUB75
     ESP_LOGD(TAG, "Turn screen backlight off");
     digitalWrite(TFT_BL, TFT_BACKLIGHT_OFF);
+#endif
 }
 
 //----------------------------------------------
@@ -483,12 +607,17 @@ void screenText(char *sParam)
     {
         return;
     }
+#ifdef HUB75
+    writetext(sParam, 1, DispWidth / 2 - ((strlen(sParam) * 10) / 2), 200, 0, WHITE, false, "clear");
+#else
     writetext(sParam, 1, DispWidth / 2 - ((strlen(sParam) * 10) / 2), 200, TFT_FONT_LARGE, 0, WHITE, false, "clear");
+#endif
 }
 
 //-----------------------------------------------
 void screenAutoRotation()
 {
+#ifdef USE_IMU
     imu.update(); // Read the sensor data
     imu.getAccel(&accelData);
     imu.getGyro(&gyroData);
@@ -520,4 +649,5 @@ void screenAutoRotation()
             ESP_LOGD(TAG, "Portrait Upside Down");
         }
     }
+#endif
 }

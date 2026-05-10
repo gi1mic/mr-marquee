@@ -5,6 +5,13 @@ Similar to tty2oled but using a colour screen and Wi-Fi to allow for remote conn
 ![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/n64.jpg?raw=true)
 ![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/ps1.jpg?raw=true)
 
+The project is mainly designed for running on a Waveshare 3.16" Esp32-S3 board but can easily be modified for other display devices connected to an ESP32 including the CYD (Cheap Yellow Display) and HUD75 LED panels. Check out the platformio.ini for some example configs.
+
+If you want to use HUB75 panels, please check out https://github.com/mrcodetastic/ESP32-HUB75-MatrixPanel-DMA notes.
+While not a recommended configuration I have tested the code with three 64x64 panels connected to a Adafruit Matrix Portal S3 board in a 192x64 configuration. However I have ordered some Waveshare ESP32-S3-RGB-Matrix boards since they look like a better option.
+
+Note: Because we are using Wi-Fi you can run more than display at a time.
+
 ## Introduction
 The system consists of two parts. A server element for the MiSTer FPGA system and a Wi-Fi connected ESP32 based colour display.
 
@@ -12,7 +19,7 @@ Since we are using ESP32 Wi-Fi for communication the MiSTer FPGA will need to be
 
 If you do not already have a MiSTer system, I highly recommend a Multisystem2 [from](https://multisystem.uk/products/mister-multisystem-2/).
 
-You can optionaly enable the display of current game images by installing the "remote" script on you Mister system and enabling "remote" support either by selecting the checkbox during Wi-Fi configuration. 
+You can optionally enable the display of current game images by installing the "remote" script on you Mister system and enabling "remote" support using the checkbox during initial Wi-Fi configuration. 
 
 ### Operation on the MiSTer system
 The mr-marquee service provides the following features:
@@ -64,7 +71,6 @@ and viewing some of the available marquees
 
 Optionally install the "remote" script for MiSTer and enable the remote option during Wi-Fi configuration if you want to show core - current running game images.
 
-
 ## ESP32 programming
 Once you have the files installed on your MiSTer system you can program either a Waveshare ESP32-S3 3.16" screen or a Cheap Yellow Display (CYD) by connecting it to an available USB port. Please make sure it is the ONLY ESP32 device connected to your MiSTer system as no checks are undertaken!!
 
@@ -72,7 +78,6 @@ CD into /media/fat/mr-marquee/esptools. And run the command
  > ./flash-mr-marquee-waveshare.sh.
 or 
 > ./flash-mr-marquee-cyd.sh // The CYD code needs more work to seperate it out from the waveshare specic code
-
 
 After a few seconds the ESP32 will reboot and show a Wi-Fi icon and the connection details on its screen. 
 
@@ -115,7 +120,6 @@ The FileFetcher code from Brian Lough is included as source files and not as a l
 1. I do not intend to implement any clock or screensaver features. I only require the screen to blank when the MiSTer FPGA is not available.
 2. Touchscreen support
 
-
 # Building the ESP32 code using platformIO
 
 Install Visual Studio Code and the platformIO plugin.
@@ -149,3 +153,5 @@ The code should run on and ESP32 based display board with a few changes as long 
 For real-time debugging use the [Zadig](https://zadig.akeo.ie/) to change the ESP32 USB drivers to: 
 >            USB Interface 0 = WinUSB driver
 >            USB Interface 2 = libusbK driver
+
+
