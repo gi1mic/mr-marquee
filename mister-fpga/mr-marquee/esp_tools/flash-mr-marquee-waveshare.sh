@@ -3,7 +3,7 @@
 esptool --baud 115200  --chip esp32-s3 \
  --before default-reset --after hard-reset write-flash -z \
  --flash-mode dio --flash-freq 40m --flash-size detect \
-0x0000 firmware-mr-marquee-waveshare.bin
+0x0000 firmware-mr-marquee-ESP32-S3-LCD-3-16.bin
 
 
 
