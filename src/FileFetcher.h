@@ -33,11 +33,11 @@ public:
 
     // Generic Request Methods
     int makeGetRequest(int portNumber, const char *command, const char *authorization, const char *accept, const char *host);
+    Stream *getFileStream(String mjpgUrl);
 
     // File methods
     bool getFile(char *fileUrl, Stream *file);
     bool getFile(char *fileUrl, uint8_t **file, int *fileLength);
-
 
     int httpsPortNumber = 443;
     int httpPortNumber = 80;
@@ -49,7 +49,9 @@ private:
     int getHttpStatusCode();
     void skipHeaders();
     void closeClient();
+    String getHost(char *fileUrl);
+    int getPort(char *fileUrl);
+    String getPath(char *fileUrl);
 };
-
 
 #endif

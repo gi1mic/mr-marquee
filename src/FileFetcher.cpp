@@ -211,6 +211,133 @@ String getPath(char *fileUrl)
 }
 
 //------------------------------------------------
+String FileFetcher::getHost(char *fileUrl)
+{
+    if (fileUrl == NULL)
+    {
+        return "";
+    }
+
+    int protocolLength = 0;
+    if (strncmp(fileUrl, "https://", 8) == 0)
+    {
+        protocolLength = 8;
+    }
+    else if (strncmp(fileUrl, "http://", 7) == 0)
+    {
+        protocolLength = 7;
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Url not in expected format: %s (expected it to start with \"https://\" or \"http://\")", fileUrl);
+        return "";
+    }
+
+    char *authorityStart = fileUrl + protocolLength;
+    char *pathStart = strchr(authorityStart, '/');
+    char *authorityEnd = (pathStart != NULL) ? pathStart : (fileUrl + strlen(fileUrl));
+    char *portSeparator = strchr(authorityStart, ':');
+    if (portSeparator != NULL && portSeparator < authorityEnd)
+    {
+        authorityEnd = portSeparator;
+    }
+
+    int hostLength = authorityEnd - authorityStart;
+    if (hostLength <= 0)
+    {
+        return "";
+    }
+
+    String host = String(authorityStart).substring(0, hostLength);
+    ESP_LOGD(TAG, "Host name: %s", host.c_str());
+
+    return host;
+}
+
+//------------------------------------------------
+int FileFetcher::getPort(char *fileUrl)
+{
+    if (fileUrl == NULL)
+    {
+        return 80;
+    }
+
+    int protocolLength = 0;
+    int portNumber = 80;
+
+    if (strncmp(fileUrl, "https://", 8) == 0)
+    { // Is HTTPS
+        protocolLength = 8;
+        portNumber = 443;
+    }
+    else if (strncmp(fileUrl, "http://", 7) == 0)
+    { // Is HTTP
+        protocolLength = 7;
+        portNumber = 80;
+    }
+    else
+    {
+        ESP_LOGI(TAG, "Url not in expected format: %s (expected it to start with \"https://\" or \"http://\")", fileUrl);
+    }
+
+    char *authorityStart = fileUrl + protocolLength;
+    char *pathStart = strchr(authorityStart, '/');
+    char *authorityEnd = (pathStart != NULL) ? pathStart : (fileUrl + strlen(fileUrl));
+    char *portSeparator = strchr(authorityStart, ':');
+
+    if (portSeparator != NULL && portSeparator < authorityEnd)
+    {
+        int portLength = authorityEnd - (portSeparator + 1);
+        if (portLength > 0)
+        {
+            String customPort = String(portSeparator + 1).substring(0, portLength);
+            int parsedPort = customPort.toInt();
+            if (parsedPort > 0)
+            {
+                portNumber = parsedPort;
+            }
+            else
+            {
+                ESP_LOGI(TAG, "Invalid custom port in URL: %s", fileUrl);
+            }
+        }
+    }
+    ESP_LOGD(TAG, "Port: %i", portNumber);
+    return portNumber;
+}
+
+//------------------------------------------------
+String FileFetcher::getPath(char *fileUrl)
+{
+    if (fileUrl == NULL)
+    {
+        return "/";
+    }
+
+    int protocolLength = 0;
+    if (strncmp(fileUrl, "https://", 8) == 0)
+    {
+        protocolLength = 8;
+    }
+    else if (strncmp(fileUrl, "http://", 7) == 0)
+    {
+        protocolLength = 7;
+    }
+
+    char *pathStart = strchr(fileUrl + protocolLength, '/');
+    if (pathStart == NULL)
+    {
+        ESP_LOGD(TAG, "Path: /");
+        return "/";
+    }
+    int pathLength = strlen(pathStart);
+    String path = String(pathStart);
+    ESP_LOGD(TAG, "Path:  %s", path.c_str());
+
+    return path;
+}
+
+//------------------------------------------------
 int FileFetcher::commonGetFile(char *fileUrl)
 {
     ESP_LOGD(TAG, "Parsing file URL: %s", fileUrl);
@@ -226,6 +353,29 @@ int FileFetcher::commonGetFile(char *fileUrl)
         return getContentLength();
     }
     return -1; // Failed
+}
+
+//------------------------------------------------
+Stream* FileFetcher::getFileStream(String mjpgUrl)
+{
+    if (mjpgUrl == "" || mjpgUrl == nullptr)
+    {
+        ESP_LOGE(TAG, "Invalid URL");
+        return nullptr;
+    }
+
+    int statusCode = commonGetFile((char*)mjpgUrl.c_str());
+    ESP_LOGD(TAG, "Status Code: %i", statusCode);
+    
+    if (statusCode <= 0)
+    {
+        ESP_LOGE(TAG, "Failed to get file stream");
+        closeClient();
+        return nullptr;
+    }
+
+    skipHeaders();
+    return client;
 }
 
 //------------------------------------------------

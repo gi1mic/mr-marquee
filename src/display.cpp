@@ -14,7 +14,7 @@ static const char *TAG = "DISP";
 String currentCore = ""; // Corename
 String currentGame = ""; // Current running game as provided by MiSTer Remote
 int currentRotation = DEFAULT_ROTATION;
-bool videoPlay = false;
+bool videoPlay = true;
 
 String folderjpg = "/jpg/";
 String foldermjpeg = "/mjpeg/";
@@ -129,31 +129,31 @@ void tftInit()
     tft->setTextWrap(false); // Don't wrap at end of line - will do ourselves
     tft->setCursor(5, 0);    // start at top left, with 8 pixel of spacing
 
-// HUB75 test code    
-//    tft->fillScreen(RED);
-//    tft->setTextColor(tft->color444(15, 0, 0));
-//    tft->println("Mr Marquee!");
-//    delay(3000);
-//    tft->fillScreen(GREEN);
-//    tft->setTextColor(tft->color444(15, 0, 0));
-//    tft->println("Mr Marquee!");
-//    delay(3000);
-//    tft->fillScreen(BLUE);
-//    tft->setTextColor(tft->color444(0, 15, 0));
-//    tft->println("Mr Marquee!");
-//    delay(3000);
-//    tft->fillScreen(WHITE);
-//    tft->setTextColor(tft->color444(0, 0, 15));
-//    tft->println("Mr Marquee!");
-//    delay(3000);
-//    // draw an 'X' in red
-//    tft->drawLine(0, 0, tft->width() - 1, tft->height() - 1, tft->color444(15, 0, 0));
-//    tft->drawLine(tft->width() - 1, 0, 0, tft->height() - 1, tft->color444(15, 0, 0));
-//    delay(3000);
-//    tft->fillScreen(WHITE);
-//    // draw a blue circle
-//    tft->drawCircle(10, 10, 10, tft->color444(0, 0, 15));
-//    delay(3000);
+    // HUB75 test code
+    //    tft->fillScreen(RED);
+    //    tft->setTextColor(tft->color444(15, 0, 0));
+    //    tft->println("Mr Marquee!");
+    //    delay(3000);
+    //    tft->fillScreen(GREEN);
+    //    tft->setTextColor(tft->color444(15, 0, 0));
+    //    tft->println("Mr Marquee!");
+    //    delay(3000);
+    //    tft->fillScreen(BLUE);
+    //    tft->setTextColor(tft->color444(0, 15, 0));
+    //    tft->println("Mr Marquee!");
+    //    delay(3000);
+    //    tft->fillScreen(WHITE);
+    //    tft->setTextColor(tft->color444(0, 0, 15));
+    //    tft->println("Mr Marquee!");
+    //    delay(3000);
+    //    // draw an 'X' in red
+    //    tft->drawLine(0, 0, tft->width() - 1, tft->height() - 1, tft->color444(15, 0, 0));
+    //    tft->drawLine(tft->width() - 1, 0, 0, tft->height() - 1, tft->color444(15, 0, 0));
+    //    delay(3000);
+    //    tft->fillScreen(WHITE);
+    //    // draw a blue circle
+    //    tft->drawCircle(10, 10, 10, tft->color444(0, 0, 15));
+    //    delay(3000);
 
 #else
     tft->begin();
@@ -258,31 +258,30 @@ void writetextcentered(String text, int textposY, int textrotation, int fontcolo
     tft->print(text);
 }
 
-
 //----------------------------------------------
-void showPayload(String payload, String gameName)
+void showPayload(String core, String gameName)
 {
-    if (payload == "")
-        payload = "MENU";
-    ESP_LOGI(TAG, "Core = %s currentCore: %s | gameName = %s currentGame: %s ", payload.c_str(), currentCore.c_str(), gameName.c_str(), currentGame.c_str());
+    if (core == "")
+        core = "MENU";
+    ESP_LOGI(TAG, "Core = %s currentCore: %s | gameName = %s currentGame: %s ", core.c_str(), currentCore.c_str(), gameName.c_str(), currentGame.c_str());
 
-    payload.trim(); // Fix the issue of ScummVM adding a \r to the end of the payload
+    core.trim(); // Fix the issue of ScummVM adding a \r to the end of the payload
 
-    if ((payload != currentCore) || (gameName != currentGame))
+    if ((gameName != currentGame) || (core != currentCore))
     {
-        currentCore = payload;
+        currentCore = core;
         currentGame = gameName;
-        if (payload == "MENU")
+        if (core == "MENU")
         {
-            ESP_LOGI(TAG, "Showing local: %s", payload);
+            ESP_LOGI(TAG, "Showing local: %s", core);
             clearScreen();
-            showLocalImage(PIC_MENU);
+            showLocalFile(PIC_MENU);
         }
         else
         {
-            ESP_LOGI(TAG, "Showing URL Core: %s ", payload);
+            ESP_LOGI(TAG, "Showing URL Core: %s ", core);
             clearScreen();
-            showCore(payload, urlEncode(gameName));
+            showURLCore(core, urlEncode(gameName));
         }
     }
 }
@@ -301,9 +300,19 @@ void showJpegImage(String core, int pictureposX, int pictureposY, int scale)
 }
 
 //----------------------------------------------
-bool showLocalImage(String core)
+bool showLocalFile(String core)
 {
-    String fqn = "/" + core + ".jpg";
+    String fqn = "/" + core + ".mjpg";
+
+    if (videoPlay) // Check if we should try playing videos (see settings.json on the server)
+    {
+        if (showLocalVideo(core, 0, 0))
+        {
+            return true;
+        }
+    }
+
+    fqn = "/" + core + ".jpg";
     ESP_LOGI(TAG, "Showing local pic: %s", fqn.c_str());
 #ifdef USE_INTERNAL_SPIFFS
     if (SPIFFS.exists(fqn))
@@ -318,7 +327,7 @@ bool showLocalImage(String core)
 }
 
 //----------------------------------------------
-bool showCorenameURL(String core)
+bool showURLCoreImage(String core)
 {
     String fetchBaseURL = MISTER_WEBSERVER;
     String prefix = core.substring(0, 1) + "/";
@@ -333,14 +342,10 @@ bool showCorenameURL(String core)
         ESP_LOGD(TAG, "Portrait :%s", PORTRAIT_SCREEN ? "True" : "False");
         fetchBaseURL = fetchBaseURL + "/" + DispWidth + "x" + DispHeight;
     }
-    ESP_LOGD(TAG, "fetchBaseURL: %s", fetchBaseURL.c_str());
-
     fetchBaseURL = fetchBaseURL + addPathAndExtension(core, "jpg");
-    ESP_LOGD(TAG, "fetchBaseURL+ext: %s", fetchBaseURL.c_str());
 
     char charArray[200];
     fetchBaseURL.toCharArray(charArray, sizeof(charArray));
-    ESP_LOGD(TAG, "Showing URL: %s", fetchBaseURL.c_str());
 
     return (showImageURL(charArray));
 }
@@ -367,10 +372,57 @@ bool showImageURL(char *imageUrl)
     return gotImage;
 }
 
-//----------------------------------------------
-bool showVideo(String core, int videoposX, int videoposY)
+//---------------------------------------------
+bool showVideoURL(char *videoUrl)
 {
-    String fqn = addPathAndExtension(core, "mjpeg");
+    ESP_LOGI(TAG, "Showing video URL: %s", videoUrl);
+    Stream *videoStream = nullptr; // Stream pointer that the library will use to read the video (uses malloc)
+
+    videoStream = fileFetcher.getFileStream(videoUrl);
+
+    if (videoStream == nullptr)
+    {
+        ESP_LOGE(TAG, "Failed to get video stream");
+        return false;
+    }
+    mjpeg.setup(videoStream, mjpeg_buf, jpegDrawCallback, true, 0, 0, DispWidth, DispHeight);
+    while (videoStream->available())
+    {
+        mjpeg.readMjpegBuf(); // Read video
+        mjpeg.drawJpg();
+    }
+    return true;
+}
+
+//----------------------------------------------
+bool showURLVideo(String core)
+{
+    String fetchBaseURL = MISTER_WEBSERVER;
+    String prefix = core.substring(0, 1) + "/";
+
+    if (PORTRAIT_SCREEN == true)
+    {
+        ESP_LOGD(TAG, "Portrait :%s", PORTRAIT_SCREEN ? "True" : "False");
+        fetchBaseURL = fetchBaseURL + "/" + DispHeight + "x" + DispWidth;
+    }
+    else
+    {
+        ESP_LOGD(TAG, "Portrait :%s", PORTRAIT_SCREEN ? "True" : "False");
+        fetchBaseURL = fetchBaseURL + "/" + DispWidth + "x" + DispHeight;
+    }
+    fetchBaseURL = fetchBaseURL + "/mjpg/" + prefix;
+    fetchBaseURL = fetchBaseURL + addPathAndExtension(core, "mjpg");
+
+    char charArray[200];
+    fetchBaseURL.toCharArray(charArray, sizeof(charArray));
+
+    return (showVideoURL(charArray));
+}
+
+//----------------------------------------------
+bool showLocalVideo(String core, int videoposX, int videoposY)
+{
+    String fqn = "/" + core + ".mjpg";
     ESP_LOGI(TAG, "Play video: %s", fqn.c_str());
     File filehandle;
 #ifdef USE_INTERNAL_SPIFFS
@@ -381,7 +433,7 @@ bool showVideo(String core, int videoposX, int videoposY)
     if (!filehandle || filehandle.isDirectory())
     {
         ESP_LOGI(TAG, "ERROR: Failed to open %s file for reading", fqn);
-        writetextcentered("ERROR: Failed to open " + fqn + " file for reading", FOOTER_LINE, 0, WHITE, false, "noclear");
+        // writetextcentered("ERROR: Failed to open " + fqn + " file for reading", FOOTER_LINE, 0, WHITE, false, "noclear");
         return false;
     }
     else
@@ -413,16 +465,18 @@ bool showVideo(String core, int videoposX, int videoposY)
 
 #ifdef HUB75
 //----------------------------------------------
-// This is a Big endian RGB565 bitmap drawing function, for JPEG decoder. 
-// The HUB75 library expects little endian, so we need to swap the bytes. 
+// This is a Big endian RGB565 bitmap drawing function, for JPEG decoder.
+// The HUB75 library expects little endian, so we need to swap the bytes.
 // This is used as the callback for JPEG drawing and video playback.
-void drawRGBBeBitmap(int16_t x, int16_t y, uint16_t *bitmap, int16_t w, int16_t h) 
+void drawRGBBeBitmap(int16_t x, int16_t y, uint16_t *bitmap, int16_t w, int16_t h)
 {
-  for (int16_t j = 0; j < h; j++, y++) {
-    for (int16_t i = 0; i < w; i++) {
-      tft->drawPixel(x + i, y, (bitmap[j * w + i]>>8) | (bitmap[j * w + i]<<8));
+    for (int16_t j = 0; j < h; j++, y++)
+    {
+        for (int16_t i = 0; i < w; i++)
+        {
+            tft->drawPixel(x + i, y, (bitmap[j * w + i] >> 8) | (bitmap[j * w + i] << 8));
+        }
     }
-  }
 }
 #endif
 //----------------------------------------------
@@ -475,8 +529,9 @@ bool fetchfile(String fetchBaseURL, String core)
     ESP_LOGI(TAG, "Getting file %s", targetFilename.c_str());
     if (filesize != 0)
     {
-        ESP_LOGD(TAG, "Video found, showing video");
-        return showVideo(core, 0, 0);
+        tft->fillScreen(BLACK);
+        ESP_LOGD(TAG, "URL Video found stub");
+        return true;
     }
     else
     { // Try for image if video not found
@@ -485,9 +540,8 @@ bool fetchfile(String fetchBaseURL, String core)
         filesize = getFile(fetchBaseURL, targetFilename);
         ESP_LOGD(TAG, "Get file size: %d for %s", filesize, core.c_str());
 
-        // Write received file to SD card
         if (filesize == 0)
-        { // No video or image found on server, show error
+        { // No video or image found on server, show error image
             ESP_LOGI(TAG, "Missing picture or another error");
             tft->fillScreen(BLACK);
             showJpegImage(addPathAndExtension(PIC_ERROR, "jpg"), 0, 0, 0);
@@ -521,33 +575,32 @@ String addPathAndExtension(String core, String fileext)
 }
 
 //----------------------------------------------
-void showCore(const String &core, const String &gameName)
+void showURLCore(const String &core, const String &gameName)
 {
     int result = false;
 
-    if (videoPlay)
-    { // Check if we should try playing videos (see settings.json on the server)
-        // addPathAndExtension(core, "mjpg");
-        // tbc: try playing video url
-        ESP_LOGI(TAG, "Trying mjpg file: %s", core.c_str());
-    }
-    else
+    if (videoPlay) // Check if we should play video (see settings.json on the server)
     {
-        ESP_LOGI(TAG, "Trying jpg file: %s - %s", core.c_str(), gameName.c_str());
-        if (!showCorenameURL(core + "-" + gameName))
+        if (showURLVideo(core)) // If video found and played, return else try for image
         {
-            ESP_LOGI(TAG, "Trying jpg file: %s", core.c_str());
-            if (!showCorenameURL(core))
+            return;
+        }
+    }
+
+    ESP_LOGI(TAG, "Trying jpg file: %s - %s", core.c_str(), gameName.c_str());
+    if (!showURLCoreImage(core + "-" + gameName))
+    {
+        ESP_LOGI(TAG, "Trying jpg file: %s", core.c_str());
+        if (!showURLCoreImage(core))
+        {
+            if (!showLocalFile(PIC_ERROR))
             {
-                if (!showLocalImage(PIC_ERROR))
-                {
-                    ESP_LOGI(TAG, "Core image not found on server or locally: %s", core.c_str());
-                }
-                else
-                {
-                    writetextcentered("Image for " + core + " not found", FOOTER_LINE, 0, WHITE, false, "noclear");
-                    currentCore = core;
-                }
+                ESP_LOGI(TAG, "Core image not found on server or locally: %s", core.c_str());
+            }
+            else
+            {
+                writetextcentered("Image for " + core + " not found", FOOTER_LINE, 0, WHITE, false, "noclear");
+                currentCore = core;
             }
         }
     }
@@ -557,7 +610,7 @@ void showCore(const String &core, const String &gameName)
 void screenOn(void)
 {
 #ifndef HUB75
-    ESP_LOGD(TAG, "Turn screen backlight on");
+    ESP_LOGV(TAG, "Turn screen backlight on");
     digitalWrite(TFT_BL, TFT_BACKLIGHT_ON);
 #endif
 }
@@ -565,7 +618,7 @@ void screenOn(void)
 //----------------------------------------------
 void screenOff(void)
 {
-    ESP_LOGD(TAG, "Turning screenoff");
+    ESP_LOGV(TAG, "Turning screenoff");
 #ifdef HUB75
     clearScreen();
 #else
@@ -584,7 +637,7 @@ void cmdHWInfo(void)
 //----------------------------------------------
 void screenRotation(int rotation)
 {
-    ESP_LOGD("CMD", "Rotation command received %d", rotation);
+    ESP_LOGV("CMD", "Rotation command received %d", rotation);
     if (rotation != currentRotation)
     {
         currentRotation = rotation;
@@ -622,12 +675,12 @@ void screenAutoRotation()
         if (accelData.accelX > 0)
         {
             screenRotation(3);
-            ESP_LOGD(TAG, "Landscape Right");
+            ESP_LOGV(TAG, "Landscape Right");
         }
         else
         {
             screenRotation(1);
-            ESP_LOGD(TAG, "Landscape Left");
+            ESP_LOGV(TAG, "Landscape Left");
         }
     }
     else
@@ -635,12 +688,12 @@ void screenAutoRotation()
         if (accelData.accelY > 0)
         {
             screenRotation(0);
-            ESP_LOGD(TAG, "Portrait");
+            ESP_LOGV(TAG, "Portrait");
         }
         else
         {
             screenRotation(2);
-            ESP_LOGD(TAG, "Portrait Upside Down");
+            ESP_LOGV(TAG, "Portrait Upside Down");
         }
     }
 #endif

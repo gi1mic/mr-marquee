@@ -136,7 +136,7 @@ void setup(void)
   startOTA();
   startMdns();
 
-  showLocalImage(PIC_MENU);
+  showLocalFile(PIC_MENU);
   writetextcentered("Version: " BUILD_VERSION, FOOTER_LINE, 0, WHITE, false, "noclear");
 
   startFileManager();

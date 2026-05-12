@@ -25,11 +25,10 @@ unsigned long lastTimeSettings = 0;
 unsigned long updateDelayCore = 1000;
 unsigned long updateDelaySettings = 1000;
 
-long screenTimeout = 10; // This can be overridden by server settings
-long screenTimeoutSettings = 10;
+int screenTimeout = 10; // This can be overridden by server settings
+int screenTimeoutSettings = 10;
 
 int tryGamenameThenCore = 0;
-// char *serverOptions[] = {"mr-marquee", "remote script"};
 
 //----------------------------------------------
 void loadConfig()
@@ -69,7 +68,7 @@ void loadConfig()
 //----------------------------------------------
 void configModeCallback(WiFiManager *myWiFiManager)
 {
-    showLocalImage(PIC_NO_WIFI);
+    showLocalFile(PIC_NO_WIFI);
     String msg = "SSID: " + myWiFiManager->getConfigPortalSSID() + "  http://" + WiFi.softAPIP().toString();
     writetextcentered(msg, FOOTER_LINE, 0, BLUE, false, "noclear");
     Serial.println(msg);
@@ -215,7 +214,7 @@ void readSettings()
 {
     if ((millis() - lastTimeSettings) > updateDelaySettings)
     {
-        ESP_LOGI(TAG, "read settings");
+        ESP_LOGV(TAG, "read settings");
         if (WiFi.status() == WL_CONNECTED)
         {
             HTTPClient http;
@@ -238,10 +237,10 @@ void readSettings()
                 }
 
                 videoPlay = settings["videoPlay"].as<bool>();
-                //                ESP_LOGI("Net", "Play Video = %s", videoPlay ? "TRUE" : "FALSE");
+                ESP_LOGV("Net", "Play Video = %s", videoPlay ? "TRUE" : "FALSE");
 
-                screenTimeoutSettings = settings["timeout"].as<long>();
-                // ESP_LOGI("Net", "Timeout = %l", screenTimeoutSettings);
+                screenTimeoutSettings = settings["timeout"].as<int>();
+                ESP_LOGV("Net", "Timeout = %d", screenTimeoutSettings);
             }
             else
             {
@@ -271,7 +270,7 @@ void processCore()
                 http.begin(MISTER_STATUS);
 
             int httpResponseCode = http.GET();
-            ESP_LOGD(TAG, "HTTP Response code: %d", httpResponseCode);
+            ESP_LOGV(TAG, "HTTP Response code: %d", httpResponseCode);
 
             if (httpResponseCode > 0)
             {
@@ -279,7 +278,7 @@ void processCore()
                 screenOn();
                 if (tryGamenameThenCore == 1)
                 {
-                    ESP_LOGI(TAG, "Getting core name from remote server");
+                    ESP_LOGV(TAG, "Getting core name from remote server");
                     JsonDocument settings;
                     DeserializationError error = deserializeJson(settings, http.getStream());
                     if (error)
@@ -294,7 +293,7 @@ void processCore()
                 }
                 else
                 {
-                    ESP_LOGI(TAG, "Getting core name from mr server");
+                    ESP_LOGV(TAG, "Getting core name from mr server");
                     String payload = http.getString();
                     currentGame = "";
                     showPayload(payload, "");
