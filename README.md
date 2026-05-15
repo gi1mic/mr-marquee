@@ -125,6 +125,8 @@ The FileFetcher code from Brian Lough is included as source files and not as a l
     Files starting with a numeric num,ber go in the 'numeric' folder.
 4. Scaling images:
     The current code does not scale the images. I suggest installing Microsofts Power tools and using their image resiser tool as it can do batch conversions and strips out thumbnail images at the same time. 
+5. Testing/support:
+    Testing is only undertaken on the Waveshare ESP32-S3 board. You are on your own with HUB75 devices due to the number of different devices and will probably need to build from source for those devices.
 
 # Things to do
 1. Create more Marquees
