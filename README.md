@@ -5,12 +5,11 @@ Similar to tty2oled but using a colour screen and Wi-Fi to allow for remote conn
 ![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/n64.jpg?raw=true)
 ![alt text](https://github.com/gi1mic/mr-marquee/blob/main/img/ps1.jpg?raw=true)
 
-The project is mainly designed for running on a Waveshare 3.16" Esp32-S3 board but can easily be modified for other display devices connected to an ESP32 including the CYD (Cheap Yellow Display) and HUD75 LED panels. Check out the platformio.ini for some example configs.
+The project is mainly designed for running on a Waveshare 3.16" Esp32-S3 board but can easily be modified for other display devices connected to an ESP32 including the CYD (Cheap Yellow Display) and HUD75 LED panels using Adafruit S3 and Waveshare RGB HUB75 boards. Check out the platformio.ini for example configs.
 
 If you want to use HUB75 panels, please check out https://github.com/mrcodetastic/ESP32-HUB75-MatrixPanel-DMA notes.
-While not a recommended configuration I have tested the code with three 64x64 panels connected to a Adafruit Matrix Portal S3 board in a 192x64 configuration. However I have ordered some Waveshare ESP32-S3-RGB-Matrix boards since they look like a better option.
+While not a recommended configuration I have tested the code with three 64x64 panels connected to a Adafruit Matrix Portal S3 board in a 192x64 configuration. However I have ordered some Waveshare ESP32-S3-RGB-Matrix boards since they look like a better option and have added code support but not tested the boards yet.
 
-Note: Because we are using Wi-Fi you can run more than display at a time.
 
 ## Introduction
 The system consists of two parts. A server element for the MiSTer FPGA system and a Wi-Fi connected ESP32 based colour display.
@@ -111,10 +110,25 @@ Many of the Marquees were converted from artwork designed for Pixelcade which I 
 
 The FileFetcher code from Brian Lough is included as source files and not as a library. I had to amend the library to support ports other than port 80 and 443 and fix an issue with missing data at the end of the stream. 
 
+# FAQ
+
+1. Can you run more than one mr_marquee at a time: 
+    Yes
+2. Is video supported: Yes in MJPEG format: 
+    Videos use the same directory structure as JPG's but go under a folder called mjpg.
+3. Where do I store new marquee images:
+    On the Mister FPGA system under the folder /media/fat/mr-marquee/marquees. 
+    There should be a folder for each resolution of mr-marquee system uou want to use.
+    Below that there should be two folders, jpg and mjpg.
+    In each of those folders ther should be other folders a-z plus a folder called numeric.
+    Files starting with a go in the 'a' folder and so on.
+    Files starting with a numeric num,ber go in the 'numeric' folder.
+4. Scaling images:
+    The current code does not scale the images. I suggest installing Microsofts Power tools and using their image resiser tool as it can do batch conversions and strips out thumbnail images at the same time. 
+
 # Things to do
 1. Create more Marquees
-2. Add MJPEG playback (The code already supports local MJPEG playback, but I have not tested with streaming video)
-3. Create a 3D printed enclosure for the screen
+2. Create a 3D printed enclosure for the screen
 
 ## Not planned
 1. I do not intend to implement any clock or screensaver features. I only require the screen to blank when the MiSTer FPGA is not available.
