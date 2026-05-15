@@ -1,3 +1,4 @@
+#include <arduino.h>
 #include "include.h"
 #include "display.h"
 #include "JpegFunc.h"
@@ -32,11 +33,9 @@ calData calib = {0}; // Calibration data
 AccelData accelData; // Sensor data
 GyroData gyroData;
 MagData magData;
-
 #endif
 
 #ifdef WAVESHARE
-
 Arduino_DataBus *bus = new Arduino_ESP32SPI(GFX_NOT_DEFINED, 0, 2 /* SCK */, 1 /* MOSI */, GFX_NOT_DEFINED /* MISO */, FSPI /* spi_num */);
 
 Arduino_ESP32RGBPanel *rgbpanel = new Arduino_ESP32RGBPanel(
@@ -57,7 +56,7 @@ Arduino_DataBus *bus = new Arduino_HWSPI(TFT_DC, TFT_CS, TFT_SCLK, TFT_MOSI, TFT
 Arduino_GFX *tft = new Arduino_ILI9341(bus, TFT_RST);
 #endif
 
-#ifdef HUB75
+#if defined(HUB75ADAFRUIT) || defined(HUB75WAVESHARE)
 MatrixPanel_I2S_DMA *tft = nullptr;
 #endif
 
@@ -106,7 +105,7 @@ void tftInit()
 #endif
 #endif
 
-#ifdef HUB75
+#if defined(HUB75ADAFRUIT) || defined(HUB75WAVESHARE)
     HUB75_I2S_CFG::i2s_pins _pins = {R1_PIN, G1_PIN, B1_PIN, R2_PIN, G2_PIN, B2_PIN, A_PIN, B_PIN, C_PIN, D_PIN, E_PIN, LAT_PIN, OE_PIN, CLK_PIN};
 
     // Module configuration
@@ -163,7 +162,7 @@ void tftInit()
     tft->fillScreen(BLACK);
     DispWidth = tft->width();
     DispHeight = tft->height();
-#ifndef HUB75
+#if !defined(HUB75ADAFRUIT) && !defined(HUB75WAVESHARE)
     tft->setFont(TFT_FONT_NORMAL);
 #endif
     mjpeg_buf = (uint8_t *)malloc(MJPEG_BUFFER_SIZE); // Video buffer
@@ -463,7 +462,7 @@ bool showLocalVideo(String core, int videoposX, int videoposY)
     return false;
 }
 
-#ifdef HUB75
+#if defined(HUB75ADAFRUIT) || defined(HUB75WAVESHARE)
 //----------------------------------------------
 // This is a Big endian RGB565 bitmap drawing function, for JPEG decoder.
 // The HUB75 library expects little endian, so we need to swap the bytes.
@@ -483,7 +482,7 @@ void drawRGBBeBitmap(int16_t x, int16_t y, uint16_t *bitmap, int16_t w, int16_t 
 // pixel drawing callback
 static int jpegDrawCallback(JPEGDRAW *pDraw)
 {
-#ifdef HUB75
+#if defined(HUB75ADAFRUIT) || defined(HUB75WAVESHARE)
     drawRGBBeBitmap(pDraw->x, pDraw->y, (uint16_t *)pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
 #else
     tft->draw16bitBeRGBBitmap(pDraw->x, pDraw->y, pDraw->pPixels, pDraw->iWidth, pDraw->iHeight);
@@ -609,7 +608,7 @@ void showURLCore(const String &core, const String &gameName)
 //----------------------------------------------
 void screenOn(void)
 {
-#ifndef HUB75
+#if !defined(HUB75ADAFRUIT) && !defined(HUB75WAVESHARE)
     ESP_LOGV(TAG, "Turn screen backlight on");
     digitalWrite(TFT_BL, TFT_BACKLIGHT_ON);
 #endif
@@ -619,7 +618,7 @@ void screenOn(void)
 void screenOff(void)
 {
     ESP_LOGV(TAG, "Turning screenoff");
-#ifdef HUB75
+#if defined(HUB75ADAFRUIT) || defined(HUB75WAVESHARE)
     clearScreen();
 #else
     digitalWrite(TFT_BL, TFT_BACKLIGHT_OFF);
@@ -654,7 +653,7 @@ void screenText(char *sParam)
     {
         return;
     }
-#ifdef HUB75
+#if defined(HUB75ADAFRUIT) || defined(HUB75WAVESHARE)
     writetext(sParam, 1, DispWidth / 2 - ((strlen(sParam) * 10) / 2), 200, 0, WHITE, false, "clear");
 #else
     writetext(sParam, 1, DispWidth / 2 - ((strlen(sParam) * 10) / 2), 200, TFT_FONT_LARGE, 0, WHITE, false, "clear");

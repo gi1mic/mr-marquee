@@ -29,7 +29,7 @@ void setup(void)
     delay(50);
   }
 
-#ifndef HUB75
+#if !defined(HUB75ADAFRUIT) && !defined(HUB75WAVESHARE)
   pinMode(TFT_BL, OUTPUT);
 #endif
 

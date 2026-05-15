@@ -20,10 +20,10 @@ print(current_directory)
 esptool = os.path.join(current_directory, 'win-esptool', 'esptool.exe')
 command = [ '--chip', 'esp32-s3', 
         'merge-bin',
-        '--output', 'mister-fpga\\mr-marquee\\esp_tools\\firmware-mr-marquee-ESP32-S3-HUB75.bin',
+        '--output', 'mister-fpga\\mr-marquee\\esp_tools\\firmware-mr-marquee-ESP32-S3-HUB75Adafruit.bin',
         '--flash-mode', 'dio', 
-        '0x0000', '.pio\\build\\ESP32-S3-HUB75\\bootloader.bin',
-        '0x8000', '.pio\\build\\ESP32-S3-HUB75\\partitions.bin',
+        '0x0000', '.pio\\build\\ESP32-S3-HUB75-MATRIXPORTAL\\bootloader.bin',
+        '0x8000', '.pio\\build\\ESP32-S3-HUB75-MATRIXPORTAL\\partitions.bin',
         '0xe000', os.path.expandvars('%USERPROFILE%\\.platformio\\packages\\framework-arduinoespressif32\\tools\\partitions\\boot_app0.bin'),
         '0x10000','.pio\\build\\ESP32-S3-HUB75\\firmware.bin' ]
 #print("Running command: " + esptool + " " + " ".join(command))

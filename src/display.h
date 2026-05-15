@@ -113,8 +113,36 @@ extern Arduino_GFX *tft;
 #define TFT_FONT_LARGE u8g2_font_inr21_mf
 #endif
 
-#ifdef HUB75
+#ifdef HUB75WAVESHARE
+#include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
+#include <GFX_Lite.h>
 
+#define R1_PIN 4
+#define G1_PIN 5
+#define B1_PIN 6
+#define R2_PIN 7
+#define G2_PIN 15
+#define B2_PIN 16
+#define A_PIN 18
+#define B_PIN 8
+#define C_PIN 3
+#define D_PIN 42
+#define E_PIN 9 // required for 1/32 scan panels, like 64x64px.
+#define LAT_PIN 40
+#define OE_PIN 2
+#define CLK_PIN 41
+
+extern MatrixPanel_I2S_DMA *tft;
+
+#define BLACK {tft->color565(0, 0, 0)}
+#define WHITE {tft->color565(255, 255, 255)}
+#define RED   {tft->color565(255, 0, 0)}
+#define GREEN {tft->color565(0, 255, 0)}
+#define BLUE  {tft->color565(0, 0, 255)}
+#endif
+
+
+#ifdef HUB75ADAFRUIT
 #include <ESP32-HUB75-MatrixPanel-I2S-DMA.h>
 #include <GFX_Lite.h>
 
@@ -140,8 +168,9 @@ extern MatrixPanel_I2S_DMA *tft;
 #define RED   {tft->color565(255, 0, 0)}
 #define GREEN {tft->color565(0, 255, 0)}
 #define BLUE  {tft->color565(0, 0, 255)}
-
 #endif
+
+
 
 extern int DispWidth;
 extern int DispHeight;
